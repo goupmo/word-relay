@@ -1,0 +1,94 @@
+const S = {
+  ko: {
+    title: '단어 릴레이 배틀',
+    tagline: '카테고리에 맞는 단어를, 아직 안 쓴 글자로 시작해서 쳐요. 마지막까지 남으면 승리!',
+    single: '혼자 하기', create: '방 만들기', join: '방 입장', code: '방 코드', joinGo: '입장하기',
+    name: '닉네임', namePh: '닉네임 (12자 이내)', maxPlayers: '최대 인원', timeLimit: '제한 시간', rounds: '라운드 수',
+    sec: '초', people: '명', roundsUnit: '라운드', start: '시작하기', createGo: '방 만들기', singleGo: '게임 시작',
+    back: '뒤로', leave: '나가기', home: '처음으로',
+    lobbyTitle: '대기실', waitMore: '친구가 더 들어오면 시작할 수 있어요', waitHost: '방장이 시작하길 기다리는 중',
+    copyLink: '링크 복사', copied: '링크를 복사했어요', kakao: '카카오톡으로 초대', share: '공유하기',
+    host: '방장', you: '나', ai: 'AI',
+    inviteText: (c) => `단어 릴레이 배틀에 초대합니다! 방 코드 ${c}`,
+    round: (n, m) => `${n} / ${m} 라운드`,
+    yourTurn: '내 차례', turnOf: (n) => `${n}님 차례`, wordPh: '단어를 입력하세요', submit: '제출',
+    objectBtn: '이의제기', voteTitle: (w) => `“${w}” 단어가 맞나요?`, voteYes: '틀렸어요', voteNo: '맞아요', voted: '투표 완료',
+    voteHow: '과반이 틀렸다고 하면 이 단어는 무효가 되고 낸 사람이 탈락해요.',
+    roundWinner: (n) => `${n}님 승리`, roundWinners: (n) => `${n}님 공동 승리`, nextIn: (s) => `${s}초 뒤 다음 라운드`,
+    finalTitle: '최종 순위', champion: (n) => `${n}님 우승`, champions: (n) => `${n}님 공동 우승`,
+    again: '한 판 더', waitAgain: '방장이 다시 시작하길 기다리는 중',
+    out_timeout: (n) => `${n}님 시간 초과`, out_letter_used: (n) => `${n}님 탈락 · 이미 쓴 글자`,
+    out_duplicate: (n) => `${n}님 탈락 · 이미 나온 단어`, out_not_in_dict: (n) => `${n}님 탈락 · 사전에 없는 단어`,
+    out_left: (n) => `${n}님이 나갔어요`,
+    voteUpheld: '이의제기 성공! 단어가 무효가 됐어요', voteRejected: '이의제기 실패, 단어가 인정됐어요',
+    hintUsed: '이미 쓴 글자예요', hintDup: '이미 나온 단어예요', hintInvalid: '한글 두 글자 이상으로 입력해 주세요',
+    hintInvalidEn: '알파벳 두 글자 이상으로 입력해 주세요', hintNoLetter: '쓸 수 없는 글자로 시작해요',
+    mute: '소리 끄기', unmute: '소리 켜기', langBtn: 'English',
+    disconnected: '서버와 연결이 끊겼어요. 처음 화면으로 돌아갑니다.',
+    loading: '사전을 불러오는 중…',
+    err_no_room: '그런 방이 없어요. 코드를 다시 확인해 주세요.', err_room_full: '방이 가득 찼어요.',
+    err_already_started: '이미 게임이 시작된 방이에요.', err_name_taken: '같은 닉네임이 이미 있어요.',
+    err_bad_name: '닉네임을 1~12자로 입력해 주세요.', err_not_host: '방장만 할 수 있어요.',
+    err_need_players: '2명 이상 모여야 시작할 수 있어요.', err_not_your_turn: '내 차례가 아니에요.',
+    err_too_late: '시간이 지났어요.', err_invalid: '입력한 단어를 확인해 주세요.',
+    err_cannot_vote: '지금은 투표할 수 없어요.', err_too_few_players: '3명 이상 남았을 때만 이의제기할 수 있어요.',
+    err_self: '내 단어에는 이의제기할 수 없어요.', err_no_pending: '이의제기할 단어가 없어요.',
+    err_already_voting: '이미 투표 중이에요.', err_not_alive: '탈락하면 이의제기할 수 없어요.',
+    err_bad_options: '방 설정이 올바르지 않아요.', err_bad_phase: '지금은 할 수 없어요.',
+    footAbout: '게임 소개', footPrivacy: '개인정보처리방침',
+  },
+  en: {
+    title: 'Word Relay Battle',
+    tagline: 'Type a word that fits the category and starts with a letter nobody has used. Last one standing wins!',
+    single: 'Play solo', create: 'Create room', join: 'Join room', code: 'Room code', joinGo: 'Join',
+    name: 'Nickname', namePh: 'Nickname (up to 12)', maxPlayers: 'Max players', timeLimit: 'Time per turn', rounds: 'Rounds',
+    sec: 's', people: '', roundsUnit: '', start: 'Start', createGo: 'Create room', singleGo: 'Start game',
+    back: 'Back', leave: 'Leave', home: 'Home',
+    lobbyTitle: 'Lobby', waitMore: 'Waiting for more players', waitHost: 'Waiting for the host to start',
+    copyLink: 'Copy link', copied: 'Link copied', kakao: 'Invite on KakaoTalk', share: 'Share',
+    host: 'Host', you: 'You', ai: 'AI',
+    inviteText: (c) => `Join my Word Relay Battle! Room code ${c}`,
+    round: (n, m) => `Round ${n} of ${m}`,
+    yourTurn: 'Your turn', turnOf: (n) => `${n}'s turn`, wordPh: 'Type a word', submit: 'Submit',
+    objectBtn: 'Challenge', voteTitle: (w) => `Is “${w}” a valid answer?`, voteYes: 'No, it’s wrong', voteNo: 'Yes, it’s fine', voted: 'Vote cast',
+    voteHow: 'If most players say it’s wrong, the word is void and its player is out.',
+    roundWinner: (n) => `${n} wins the round`, roundWinners: (n) => `${n} win the round`, nextIn: (s) => `Next round in ${s}s`,
+    finalTitle: 'Final standings', champion: (n) => `${n} wins!`, champions: (n) => `${n} win together!`,
+    again: 'Play again', waitAgain: 'Waiting for the host to restart',
+    out_timeout: (n) => `${n} ran out of time`, out_letter_used: (n) => `${n} is out · letter already used`,
+    out_duplicate: (n) => `${n} is out · word already played`, out_not_in_dict: (n) => `${n} is out · not in the dictionary`,
+    out_left: (n) => `${n} left the game`,
+    voteUpheld: 'Challenge succeeded, the word is void', voteRejected: 'Challenge failed, the word stands',
+    hintUsed: 'That letter is already used', hintDup: 'That word was already played', hintInvalid: 'Use at least two letters, a–z only',
+    hintInvalidEn: 'Use at least two letters, a–z only', hintNoLetter: 'No tile for that letter',
+    mute: 'Mute', unmute: 'Unmute', langBtn: '한국어',
+    disconnected: 'Lost the connection to the server. Returning to the start screen.',
+    loading: 'Loading the dictionary…',
+    err_no_room: 'No room with that code. Check it and try again.', err_room_full: 'That room is full.',
+    err_already_started: 'That game has already started.', err_name_taken: 'Someone already uses that nickname.',
+    err_bad_name: 'Enter a nickname of 1–12 characters.', err_not_host: 'Only the host can do that.',
+    err_need_players: 'You need at least 2 players to start.', err_not_your_turn: 'It is not your turn.',
+    err_too_late: 'Time is up.', err_invalid: 'Check the word you typed.',
+    err_cannot_vote: 'You cannot vote right now.', err_too_few_players: 'Challenges need 3 or more players still in.',
+    err_self: 'You cannot challenge your own word.', err_no_pending: 'There is no word to challenge.',
+    err_already_voting: 'A vote is already running.', err_not_alive: 'Eliminated players cannot challenge.',
+    err_bad_options: 'Those room settings are not valid.', err_bad_phase: 'You cannot do that right now.',
+    footAbout: 'About', footPrivacy: 'Privacy policy',
+  },
+};
+
+let lang = 'ko';
+try { lang = localStorage.getItem('lang') || (navigator.language?.startsWith('ko') ? 'ko' : 'en'); } catch { /* storage blocked */ }
+if (lang !== 'ko' && lang !== 'en') lang = 'ko';
+
+export const getLang = () => lang;
+export function setLang(l) {
+  lang = l;
+  try { localStorage.setItem('lang', l); } catch { /* storage blocked */ }
+  document.documentElement.lang = l;
+}
+// t('key') -> string; t('key', a, b) -> calls the entry when it is a function.
+export function t(key, ...args) {
+  const v = S[lang][key] ?? S.ko[key] ?? key;
+  return typeof v === 'function' ? v(...args) : v;
+}

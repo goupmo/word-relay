@@ -1,3 +1,131 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><title>단어 릴레이 배틀</title></head>
-<body>준비 중</body></html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>단어 릴레이 배틀</title>
+<meta name="description" content="카테고리에 맞는 단어를 아직 안 쓴 글자로 시작해 입력하는 턴제 단어 게임. 친구와 실시간 대전, 혼자서도 즐겨요.">
+<meta name="theme-color" content="#14172e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <button id="btn-brand" class="brand" type="button"><span class="brand-mark" aria-hidden="true">Aa</span><span data-i18n="title"></span></button>
+    <div class="top-right">
+      <button id="btn-lang" class="chip" type="button"></button>
+      <button id="btn-mute" class="chip" type="button"></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Home -->
+    <section id="s-home" class="screen" data-screen>
+      <h1 class="hero-title" data-i18n="title"></h1>
+      <p class="tagline" data-i18n="tagline"></p>
+      <div class="hero-keys" aria-hidden="true" id="hero-keys"></div>
+      <div class="stack">
+        <button id="go-single" class="btn primary" type="button" data-i18n="single"></button>
+        <button id="go-create" class="btn" type="button" data-i18n="create"></button>
+        <button id="go-join" class="btn" type="button" data-i18n="join"></button>
+      </div>
+      <div class="ad-slot" data-ad></div>
+      <footer class="foot"><a href="/about.html" data-i18n="footAbout"></a><a href="/privacy.html" data-i18n="footPrivacy"></a></footer>
+    </section>
+
+    <!-- Setup (single / create / join) -->
+    <section id="s-setup" class="screen" data-screen hidden>
+      <form id="setup-form" class="card" autocomplete="off">
+        <h2 id="setup-title"></h2>
+        <label class="field"><span data-i18n="name"></span><input id="f-name" maxlength="12" required data-i18n-ph="namePh"></label>
+        <label class="field" id="row-code"><span data-i18n="code"></span><input id="f-code" maxlength="5" autocapitalize="characters" spellcheck="false"></label>
+        <label class="field" id="row-max"><span data-i18n="maxPlayers"></span>
+          <select id="f-max"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></label>
+        <label class="field" id="row-time"><span data-i18n="timeLimit"></span>
+          <select id="f-time"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option><option value="30">30</option></select></label>
+        <label class="field" id="row-rounds"><span data-i18n="rounds"></span>
+          <select id="f-rounds"><option value="1">1</option><option value="3">3</option><option value="5" selected>5</option><option value="7">7</option><option value="10">10</option></select></label>
+        <p id="setup-msg" class="msg" role="alert"></p>
+        <div class="row">
+          <button id="setup-back" class="btn" type="button" data-i18n="back"></button>
+          <button id="setup-go" class="btn primary" type="submit"></button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Lobby -->
+    <section id="s-lobby" class="screen" data-screen hidden>
+      <div class="card">
+        <h2 data-i18n="lobbyTitle"></h2>
+        <div class="code-plate" id="lobby-code" aria-label="room code"></div>
+        <div class="row wrap">
+          <button id="btn-copy" class="btn small" type="button" data-i18n="copyLink"></button>
+          <button id="btn-kakao" class="btn small kakao" type="button" data-i18n="kakao" hidden></button>
+          <button id="btn-share" class="btn small" type="button" data-i18n="share" hidden></button>
+        </div>
+        <ul id="lobby-players" class="plist"></ul>
+        <p id="lobby-note" class="msg"></p>
+        <div class="row">
+          <button id="lobby-leave" class="btn" type="button" data-i18n="leave"></button>
+          <button id="lobby-start" class="btn primary" type="button" data-i18n="start" hidden></button>
+        </div>
+      </div>
+      <div class="ad-slot" data-ad></div>
+    </section>
+
+    <!-- Game -->
+    <section id="s-game" class="screen game" data-screen hidden>
+      <div class="players" id="players"></div>
+      <div class="stage">
+        <p class="round-no" id="round-no"></p>
+        <h2 class="cat-name" id="cat-name"></h2>
+        <div class="ring" id="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"/></svg>
+          <div class="ring-num" id="ring-num" aria-live="off"></div>
+        </div>
+        <p class="whose" id="whose"></p>
+        <div class="bubble" id="bubble" hidden><span id="bubble-text"></span><button id="btn-object" class="btn tiny danger" type="button" data-i18n="objectBtn" hidden></button></div>
+      </div>
+      <div class="keys" id="keys" aria-hidden="true"></div>
+      <form id="entry" class="entry" autocomplete="off">
+        <input id="word" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" data-i18n-ph="wordPh">
+        <button id="btn-submit" class="btn primary" type="submit" data-i18n="submit"></button>
+      </form>
+      <p class="hint" id="hint" role="status"></p>
+
+      <div class="overlay" id="vote" hidden>
+        <div class="sheet">
+          <h3 id="vote-title"></h3>
+          <p class="note" data-i18n="voteHow"></p>
+          <div class="vote-bar"><span id="vote-fill"></span></div>
+          <div class="row" id="vote-buttons">
+            <button id="vote-no" class="btn" type="button" data-i18n="voteNo"></button>
+            <button id="vote-yes" class="btn danger" type="button" data-i18n="voteYes"></button>
+          </div>
+          <p class="note" id="vote-state"></p>
+        </div>
+      </div>
+
+      <div class="overlay" id="between" hidden>
+        <div class="sheet">
+          <h3 id="between-title"></h3>
+          <ol class="rank" id="between-rank"></ol>
+          <p class="note" id="between-next"></p>
+          <div class="row" id="between-actions" hidden>
+            <button id="end-home" class="btn" type="button" data-i18n="home"></button>
+            <button id="end-again" class="btn primary" type="button" data-i18n="again"></button>
+          </div>
+          <p class="note" id="end-wait" hidden></p>
+          <div class="ad-slot" data-ad></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
