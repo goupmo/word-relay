@@ -972,7 +972,15 @@
     "desk",
     "locker",
     "diary",
-    "planner"
+    "planner",
+    "sharpener",
+    "whiteboard",
+    "notepad",
+    "pouch",
+    "lunchbox",
+    "easel",
+    "palette",
+    "thumbtack"
    ]
   }
  },

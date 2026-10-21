@@ -34,7 +34,7 @@ const C = [
  'tshirt pants skirt dress coat jacket jeans socks shoes sneakers gloves scarf hat tie shirt blouse sweater vest underwear pajamas swimsuit suit hoodie leggings shorts slippers sandals boots belt glasses watch bracelet necklace ring earrings apron cardigan raincoat uniform mittens cap'],
 ['stationery', '문구', 'School supplies',
  '연필 지우개 볼펜 공책 필통 가위 색연필 크레파스 물감 도화지 스케치북 칠판 분필 책가방 교과서 형광펜 마커 스테이플러 클립 테이프 샤프 노트 달력 계산기 사전 컴퍼스 각도기 삼각자 파일 바인더 책받침 포스트잇 명찰 사물함 풀칠 붓펜 연필깎이 필기구 학용품 스티커',
- 'pencil eraser pen notebook ruler scissors glue crayon paint brush sketchbook blackboard chalk backpack textbook highlighter marker stapler clip tape calendar calculator dictionary compass protractor folder binder sticker stamp envelope paper desk locker diary planner'],
+ 'pencil eraser pen notebook ruler scissors glue crayon paint brush sketchbook blackboard chalk backpack textbook highlighter marker stapler clip tape calendar calculator dictionary compass protractor folder binder sticker stamp envelope paper desk locker diary planner sharpener whiteboard notepad pouch lunchbox easel palette thumbtack'],
 ['furniture', '가구', 'Furniture',
  '책상 의자 침대 소파 옷장 서랍장 책장 식탁 거울 커튼 카펫 이불 베개 전등 스탠드 선반 신발장 화장대 탁자 장롱 액자 화분 쓰레기통 쿠션 방석 돗자리 욕조 세면대 변기 현관 소파베드 행거 수납장 협탁 안락의자 접이식의자 서재 병풍 요강 찬장 장식장',
  'desk chair bed sofa wardrobe drawer bookshelf table mirror curtain carpet blanket pillow lamp shelf dresser stool bench cabinet couch futon rug cushion nightstand armchair hammock mattress counter closet bookcase'],
