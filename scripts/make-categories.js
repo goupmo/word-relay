@@ -1,0 +1,114 @@
+// Writes data/categories.json from the word lists below. Original wording, written for this game.
+// Run: node scripts/make-categories.js
+import { writeFileSync } from 'node:fs';
+import { normalizeWord } from '../shared/chars.js';
+
+// [id, koName, enName, koWords, enWords] — words are space separated.
+const C = [
+['animal', '동물', 'Animals',
+ '사자 호랑이 코끼리 기린 원숭이 토끼 거북이 고양이 강아지 돼지 염소 오리 여우 늑대 사슴 다람쥐 하마 코뿔소 악어 개구리 고래 돌고래 상어 낙타 얼룩말 표범 치타 판다 캥거루 코알라 펭귄 너구리 족제비 두더지 고슴도치 박쥐 햄스터 수달 부엉이 앵무새 미어캣 순록 스컹크 도마뱀 고릴라 하이에나',
+ 'lion tiger elephant giraffe monkey rabbit turtle cat dog pig goat duck fox wolf deer squirrel hippo rhino crocodile frog whale dolphin shark camel zebra leopard cheetah panda kangaroo koala penguin raccoon weasel mole hedgehog bat hamster otter owl parrot meerkat reindeer skunk llama lizard bear horse sheep cow mouse gorilla buffalo donkey'],
+['fruit', '과일', 'Fruits',
+ '사과 바나나 포도 딸기 수박 참외 복숭아 자두 살구 감귤 오렌지 레몬 라임 망고 파인애플 키위 체리 블루베리 라즈베리 석류 무화과 코코넛 아보카도 멜론 자몽 한라봉 천혜향 유자 모과 대추 앵두 오디 산딸기 홍시 파파야 리치 용과 두리안 망고스틴 단감 청포도 청귤',
+ 'apple banana grape strawberry watermelon melon peach plum apricot pear orange lemon lime mango pineapple kiwi cherry blueberry raspberry pomegranate fig coconut avocado grapefruit tangerine papaya lychee durian guava currant blackberry cranberry persimmon nectarine date olive mulberry quince dragonfruit passionfruit clementine cantaloupe jackfruit'],
+['vegetable', '채소', 'Vegetables',
+ '당근 양파 감자 고구마 오이 호박 가지 시금치 상추 배추 양배추 브로콜리 콜리플라워 토마토 피망 파프리카 마늘 생강 대파 쪽파 부추 깻잎 쑥갓 미나리 우엉 연근 도라지 더덕 고사리 버섯 옥수수 완두콩 콩나물 숙주 셀러리 아스파라거스 비트 래디시 치커리 케일 청경채 단호박 애호박',
+ 'carrot onion potato cucumber pumpkin eggplant spinach lettuce cabbage broccoli cauliflower tomato pepper garlic ginger leek celery beet radish kale corn pea bean turnip parsnip squash zucchini asparagus artichoke mushroom okra chard cress endive shallot yam cassava sprout lentil chickpea scallion rhubarb fennel arugula'],
+['food', '음식', 'Foods',
+ '김치 불고기 비빔밥 라면 떡볶이 김밥 냉면 삼겹살 갈비 짜장면 짬뽕 탕수육 피자 햄버거 스파게티 초밥 우동 돈가스 만두 순대 튀김 파전 칼국수 수제비 삼계탕 된장찌개 김치찌개 순두부 보쌈 족발 치킨 샌드위치 샐러드 카레 오므라이스 볶음밥 잡채 갈비탕 설렁탕 곰탕 부대찌개 감자탕 떡국',
+ 'kimchi pizza hamburger spaghetti sushi noodle dumpling sandwich salad curry omelet soup steak sausage bacon pancake rice bread pasta taco burrito lasagna ramen risotto burger fries nugget kebab stew casserole meatball hotdog popcorn cereal toast porridge pudding tofu falafel paella pierogi goulash fondue gnocchi'],
+['drink', '마실 것', 'Drinks',
+ '커피 녹차 홍차 우유 주스 콜라 사이다 탄산수 생수 식혜 수정과 막걸리 소주 맥주 와인 위스키 칵테일 라떼 아메리카노 에스프레소 카푸치노 스무디 밀크티 두유 요구르트 레모네이드 코코아 보리차 옥수수차 둥굴레차 유자차 대추차 생강차 미숫가루 에이드 모히토 샴페인 이온음료 오렌지주스 매실차 쌍화차',
+ 'coffee tea milk juice cola soda water beer wine whiskey vodka cocktail latte espresso cappuccino smoothie lemonade cocoa cider tonic champagne brandy rum gin sake mojito punch shake kombucha broth nectar mocha macchiato americano frappe eggnog soju lager stout ale'],
+['job', '직업', 'Jobs',
+ '의사 간호사 교사 경찰 소방관 요리사 가수 배우 화가 작가 변호사 판사 검사 군인 농부 어부 기자 기술자 디자이너 프로그래머 과학자 비행사 조종사 운전사 약사 미용사 건축가 회계사 은행원 사서 통역사 번역가 심판 감독 선수 목수 정비사 청소부 택배기사 사진사 수의사',
+ 'doctor nurse teacher police firefighter chef singer actor painter writer lawyer judge soldier farmer fisherman reporter engineer designer programmer scientist pilot driver pharmacist barber architect accountant banker librarian translator referee coach carpenter mechanic janitor photographer dentist plumber electrician baker butcher cashier waiter surgeon mayor'],
+['country', '나라', 'Countries',
+ '한국 일본 중국 미국 영국 프랑스 독일 이탈리아 스페인 포르투갈 러시아 캐나다 호주 브라질 아르헨티나 멕시코 인도 태국 베트남 필리핀 인도네시아 말레이시아 싱가포르 이집트 터키 그리스 스위스 스웨덴 노르웨이 핀란드 덴마크 네덜란드 벨기에 오스트리아 폴란드 우크라이나 몽골 칠레 페루 쿠바 케냐',
+ 'korea japan china america england france germany italy spain portugal russia canada australia brazil argentina mexico india thailand vietnam philippines indonesia malaysia singapore egypt turkey greece switzerland sweden norway finland denmark netherlands belgium austria poland ukraine mongolia chile peru cuba kenya ireland iceland'],
+['sport', '운동', 'Sports',
+ '축구 야구 농구 배구 테니스 탁구 배드민턴 골프 수영 달리기 마라톤 스키 스케이트 복싱 유도 태권도 검도 펜싱 양궁 사격 체조 역도 레슬링 럭비 하키 볼링 당구 승마 요가 필라테스 등산 자전거 서핑 카누 조정 컬링 핸드볼 씨름 줄넘기 크로스핏',
+ 'soccer baseball basketball volleyball tennis pingpong badminton golf swimming running marathon skiing skating boxing judo taekwondo fencing archery shooting gymnastics weightlifting wrestling rugby hockey bowling billiards riding yoga hiking cycling surfing canoeing rowing curling handball cricket diving sailing climbing karate snowboarding'],
+['clothes', '입는 것', 'Clothing',
+ '티셔츠 바지 치마 원피스 코트 점퍼 청바지 양말 신발 운동화 구두 장갑 목도리 모자 스카프 넥타이 셔츠 블라우스 스웨터 조끼 속옷 잠옷 수영복 한복 정장 후드티 패딩 레깅스 반바지 슬리퍼 샌들 부츠 벨트 가방 안경 선글라스 시계 팔찌 목걸이 반지 귀걸이 앞치마',
+ 'tshirt pants skirt dress coat jacket jeans socks shoes sneakers gloves scarf hat tie shirt blouse sweater vest underwear pajamas swimsuit suit hoodie leggings shorts slippers sandals boots belt glasses watch bracelet necklace ring earrings apron cardigan raincoat uniform mittens cap'],
+['stationery', '문구', 'School supplies',
+ '연필 지우개 볼펜 공책 필통 가위 색연필 크레파스 물감 도화지 스케치북 칠판 분필 책가방 교과서 형광펜 마커 스테이플러 클립 테이프 샤프 노트 달력 계산기 사전 컴퍼스 각도기 삼각자 파일 바인더 책받침 포스트잇 명찰 사물함 풀칠 붓펜 연필깎이 필기구 학용품 스티커',
+ 'pencil eraser pen notebook ruler scissors glue crayon paint brush sketchbook blackboard chalk backpack textbook highlighter marker stapler clip tape calendar calculator dictionary compass protractor folder binder sticker stamp envelope paper desk locker diary planner'],
+['furniture', '가구', 'Furniture',
+ '책상 의자 침대 소파 옷장 서랍장 책장 식탁 거울 커튼 카펫 이불 베개 전등 스탠드 선반 신발장 화장대 탁자 장롱 액자 화분 쓰레기통 쿠션 방석 돗자리 욕조 세면대 변기 현관 소파베드 행거 수납장 협탁 안락의자 접이식의자 서재 병풍 요강 찬장 장식장',
+ 'desk chair bed sofa wardrobe drawer bookshelf table mirror curtain carpet blanket pillow lamp shelf dresser stool bench cabinet couch futon rug cushion nightstand armchair hammock mattress counter closet bookcase'],
+['vehicle', '탈것', 'Vehicles',
+ '자동차 버스 택시 기차 지하철 비행기 헬리콥터 자전거 오토바이 트럭 구급차 소방차 경찰차 열기구 로켓 우주선 잠수함 유람선 요트 보트 케이블카 트램 스쿠터 킥보드 트랙터 포클레인 탱크 전차 모노레일 리무진 인력거 마차 수레 썰매 카약 곤돌라 비행선 카트 지프 레미콘 견인차',
+ 'car bus taxi train subway airplane helicopter ship bicycle motorcycle truck ambulance firetruck rocket spaceship submarine yacht boat tram scooter tractor tank limousine van jeep ferry canoe sled wagon carriage cart bulldozer excavator airship glider hovercraft unicycle skateboard trolley monorail'],
+['body', '몸', 'Body parts',
+ '머리 얼굴 이마 눈썹 눈동자 입술 어깨 팔꿈치 손목 손가락 손톱 가슴 배꼽 허리 엉덩이 무릎 발목 발가락 발바닥 종아리 허벅지 목구멍 치아 턱수염 머리카락 피부 심장 위장 대장 소장 혈관 근육 척추 갈비뼈 콧구멍 콧등 귓불 겨드랑이 정강이 뒤통수 광대뼈 손바닥 발등',
+ 'head face forehead eyebrow eye nose mouth lip ear neck shoulder elbow wrist finger nail chest belly waist hip knee ankle toe heel calf thigh tongue tooth chin beard hair skin heart brain lung liver stomach bone muscle spine rib palm thumb'],
+['instrument', '악기', 'Instruments',
+ '피아노 기타 바이올린 첼로 플루트 클라리넷 트럼펫 색소폰 드럼 하프 오보에 튜바 트롬본 실로폰 탬버린 캐스터네츠 오르간 아코디언 하모니카 우쿨렐레 만돌린 가야금 거문고 해금 대금 장구 꽹과리 피리 소고 비올라 콘트라베이스 팬플루트 멜로디언 리코더 심벌즈 트라이앵글 단소 아쟁 북소리 나팔 호른 튜닝',
+ 'piano guitar violin cello flute clarinet trumpet saxophone drum harp oboe tuba trombone xylophone tambourine organ accordion harmonica ukulele mandolin viola bassoon cymbal triangle recorder banjo bagpipe piccolo synthesizer gong bongo maracas cornet horn'],
+['plant', '꽃과 나무', 'Plants',
+ '장미 튤립 국화 해바라기 민들레 벚꽃 개나리 진달래 무궁화 코스모스 백합 카네이션 수선화 라벤더 제비꽃 연꽃 목련 소나무 은행나무 단풍나무 참나무 대나무 버드나무 선인장 고사리 이끼 잔디 클로버 팬지 아카시아 느티나무 향나무 측백나무 전나무 야자수 동백 철쭉 화초 난초 작약 양귀비 재스민',
+ 'rose tulip chrysanthemum sunflower dandelion daisy lily carnation daffodil lavender violet lotus magnolia pine maple oak bamboo willow cactus fern moss grass clover pansy acacia cedar palm orchid peony poppy jasmine ivy bush tree'],
+['nature', '자연', 'Nature',
+ '하늘 구름 바람 안개 무지개 천둥 번개 태풍 폭풍 햇빛 달빛 별빛 노을 이슬 서리 우박 폭포 호수 강물 바닷가 모래 바위 산맥 계곡 동굴 화산 사막 초원 숲속 해변 파도 갯벌 은하수 유성 혜성 지진 눈보라 소나기 장마 가뭄 빙하 오로라',
+ 'sky cloud wind rain snow fog rainbow thunder lightning typhoon storm sunshine sunset dew frost hail waterfall lake river beach sand rock mountain valley cave volcano desert meadow forest island wave glacier canyon meteor comet earthquake tornado planet'],
+['kitchen', '주방용품', 'Kitchen items',
+ '냄비 프라이팬 주전자 국자 뒤집개 도마 젓가락 숟가락 포크 접시 그릇 사발 밥솥 전기밥솥 믹서 토스터 전자레인지 오븐 가스레인지 압력솥 거품기 밀대 강판 집게 행주 수세미 찬장 식기세척기 양념통 소금통 쟁반 채반 뚝배기 찜기 옹기 도시락 물병 텀블러 깔때기 감자칼 병따개 캔따개',
+ 'pot pan kettle ladle spatula board knife chopsticks spoon fork plate bowl cup cooker blender toaster microwave oven whisk grater tongs sponge cupboard dishwasher teapot colander peeler strainer skillet saucepan mug tray'],
+['insect', '곤충', 'Insects',
+ '개미 나비 잠자리 매미 메뚜기 귀뚜라미 사마귀 무당벌레 풍뎅이 하늘소 장수풍뎅이 사슴벌레 반딧불이 모기 바퀴벌레 거미 지네 달팽이 애벌레 나방 꿀벌 말벌 벼룩 진드기 방아깨비 여치 베짱이 소금쟁이 물방개 하루살이 딱정벌레 쇠똥구리 굼벵이 번데기 나나니 파리매 날파리 집게벌레 노린재 밑들이 진딧물 바구미',
+ 'ant bee butterfly dragonfly cicada grasshopper cricket mantis ladybug beetle mosquito fly cockroach spider centipede snail caterpillar moth wasp flea tick firefly termite hornet cocoon larva locust aphid weevil earwig gnat mite'],
+['sea', '바다 생물', 'Sea creatures',
+ '고등어 갈치 오징어 문어 낙지 새우 꽃게 대게 전복 소라 조개 홍합 가리비 해삼 멍게 성게 미역 다시마 상어 고래 돌고래 가오리 해파리 불가사리 해마 복어 광어 우럭 연어 참치 멸치 꽁치 장어 명태 대구 산호 바다거북 꼴뚜기 쭈꾸미 도미 방어 아귀 가자미',
+ 'mackerel squid octopus shrimp crab abalone conch clam oyster mussel scallop urchin seaweed kelp shark whale dolphin ray jellyfish starfish seahorse pufferfish flounder salmon tuna anchovy eel cod coral turtle lobster seal walrus manatee sardine trout herring swordfish piranha'],
+['bird', '새', 'Birds',
+ '참새 비둘기 까치 까마귀 독수리 올빼미 부엉이 제비 갈매기 두루미 백조 오리 기러기 앵무새 공작 타조 펭귄 딱따구리 꾀꼬리 뻐꾸기 직박구리 종달새 물총새 황새 왜가리 칠면조 병아리 플라밍고 펠리컨 카나리아 수리 따오기 원앙 뜸부기 후투티 청둥오리 휘파람새 찌르레기 박새 도요새 매미새',
+ 'sparrow pigeon magpie crow eagle hawk owl swallow seagull crane swan duck goose parrot peacock ostrich penguin woodpecker nightingale cuckoo lark kingfisher stork heron turkey chick flamingo pelican canary falcon robin finch dove raven vulture hummingbird cardinal condor'],
+['tool', '공구', 'Tools',
+ '망치 드라이버 스패너 펜치 나사 괭이 도끼 줄자 수평계 드릴 사다리 페인트 롤러 니퍼 렌치 인두 대패 쇠톱 전동드릴 볼트 너트 곡괭이 호미 갈퀴 쇠망치 공구함 장도리 삽자루 톱날 사포 줄칼 바이스 집게 못박이 정질 쇠지레 전기톱 용접기 그라인더 해머 절단기',
+ 'hammer screwdriver wrench pliers saw nail screw shovel hoe sickle axe tape drill ladder brush paint roller cutter bolt nut pickaxe rake chisel level vise anvil mallet sander crowbar toolbox'],
+['dessert', '간식', 'Snacks and sweets',
+ '케이크 쿠키 초콜릿 사탕 젤리 아이스크림 푸딩 도넛 마카롱 와플 팬케이크 과자 감자칩 팝콘 호떡 붕어빵 약과 한과 인절미 송편 찹쌀떡 빙수 팥빙수 요거트 크루아상 티라미수 파이 타르트 캐러멜 츄러스 초코파이 젤라또 머핀 스콘 베이글 쿠키반죽 군고구마 호두과자 뻥튀기 꿀떡 경단',
+ 'cake cookie chocolate candy jelly icecream pudding donut macaron waffle pancake snack chips popcorn muffin pie tart caramel gum churros gelato sorbet brownie cupcake croissant eclair scone bagel truffle toffee lollipop marshmallow fudge nougat sundae cheesecake'],
+['electronics', '전자제품', 'Electronics',
+ '냉장고 세탁기 텔레비전 컴퓨터 노트북 태블릿 스마트폰 카메라 이어폰 헤드폰 스피커 라디오 선풍기 에어컨 청소기 전자레인지 드라이기 다리미 정수기 공기청정기 가습기 로봇청소기 프린터 모니터 키보드 마우스 충전기 보조배터리 게임기 리모컨 전기장판 전기포트 믹서기 토스터 블렌더 건조기 식기세척기 전기면도기 헤어드라이어 인덕션',
+ 'fridge washer television computer laptop tablet smartphone camera earphones headphones speaker radio fan aircon vacuum microwave dryer iron purifier humidifier printer monitor keyboard mouse charger console remote blender toaster kettle router drone projector scanner webcam'],
+['subject', '과목', 'School subjects',
+ '국어 수학 영어 과학 사회 역사 지리 음악 미술 체육 도덕 기술 가정 한문 물리 화학 생물 지구과학 윤리 철학 경제 정치 컴퓨터 코딩 독서 글쓰기 서예 무용 연극 영화 외국어 통계 확률 대수 기하 천문학 심리학 사회학 문학 논술',
+ 'korean math english science social history geography music art physical ethics technology home chinese physics chemistry biology economics politics computer coding reading writing dance drama literature philosophy psychology sociology statistics algebra geometry calculus astronomy language'],
+['place', '장소', 'Places',
+ '학교 병원 은행 도서관 박물관 미술관 공원 놀이터 시장 마트 편의점 약국 우체국 경찰서 소방서 극장 영화관 식당 카페 공항 기차역 터미널 항구 호텔 해수욕장 동물원 수족관 운동장 체육관 수영장 교회 성당 사무실 공장 농장 목장 과수원 빵집 미용실 서점 세탁소',
+ 'school hospital bank library museum gallery park playground market mart store pharmacy office theater cinema restaurant cafe airport station terminal harbor hotel beach zoo aquarium stadium gym pool church temple factory farm ranch orchard bakery salon'],
+['city', '도시', 'Cities',
+ '서울 부산 대구 인천 광주 대전 울산 수원 제주 춘천 강릉 전주 목포 여수 경주 안동 포항 창원 천안 청주 도쿄 오사카 베이징 상하이 파리 런던 뉴욕 로마 베를린 마드리드 모스크바 시드니 방콕 하노이 카이로 두바이 밴쿠버 토론토 리스본 빈 프라하 오슬로 아테네 델리 뭄바이',
+ 'seoul busan daegu incheon gwangju daejeon ulsan suwon jeju tokyo osaka beijing shanghai paris london newyork rome berlin madrid moscow sydney bangkok hanoi cairo dubai vancouver toronto lisbon vienna prague oslo athens delhi mumbai lima boston chicago seattle miami'],
+['color', '색깔', 'Colors',
+ '빨강 주황 노랑 초록 파랑 남색 보라 분홍 하양 검정 회색 갈색 하늘색 연두색 금색 은색 살구색 베이지 청록 자주 감색 군청 연보라 진홍 선홍 카키 아이보리 민트 네이비 버건디 올리브 라벤더 터콰이즈 마젠타 크림색 흑색 백색 적색 청색 황색 주홍',
+ 'red orange yellow green blue navy purple pink white black gray brown beige gold silver violet indigo crimson scarlet khaki ivory mint olive teal maroon magenta cyan lime lavender turquoise burgundy tan coral peach amber azure ruby emerald cream'],
+['hobby', '취미', 'Hobbies',
+ '독서 낚시 등산 요리 사진 여행 캠핑 게임 수영 뜨개질 자수 원예 바둑 장기 체스 퍼즐 노래 볼링 당구 자전거 산책 달리기 요가 베이킹 도예 서예 연극 보드게임 탁구 그림 영화 만화 악기 스케이트 스키 수집 공예 목공 캘리그라피 드라이브 클라이밍',
+ 'reading fishing hiking cooking drawing photography traveling camping gaming knitting embroidery gardening collecting chess puzzle singing dancing baking pottery calligraphy cycling jogging yoga bowling billiards painting sewing origami surfing diving skating acting writing blogging'],
+['people', '사람', 'People',
+ '엄마 아빠 할머니 할아버지 언니 오빠 누나 동생 삼촌 이모 고모 사촌 조카 남편 아내 친구 선생님 학생 이웃 손님 어른 아기 청년 소년 소녀 노인 신랑 신부 선배 후배 동료 사장 직원 주인 부모님 형제 자매 이모부 고모부 외삼촌',
+ 'mother father grandmother grandfather sister brother uncle aunt cousin nephew niece son daughter husband wife friend teacher student neighbor guest adult child baby youth boy girl elder groom bride senior junior colleague boss staff owner parent sibling twin'],
+['toy', '장난감', 'Toys',
+ '인형 블록 레고 퍼즐 팽이 구슬 딱지 윷놀이 제기 줄넘기 로봇 소꿉놀이 장난감 보드게임 주사위 바둑돌 풍선 비눗방울 물총 인형극 굴렁쇠 사방치기 미니카 팽이치기 곰인형 피규어 모형 보물찾기 요요 딸랑이 그네 미끄럼틀 시소 트램펄린 모래놀이 찰흙 점토 연날리기 공기놀이 숨바꼭질',
+ 'doll block lego puzzle top kite ball marbles dice robot balloon bubble yoyo teddy figure model blocks cards tricycle swing slide seesaw trampoline rattle puppet playdough sandbox slinky carousel hoop frisbee scooter'],
+];
+
+const out = [];
+for (const [id, koName, enName, ko, en] of C) {
+  const entry = { id, ko: { name: koName, words: [] }, en: { name: enName, words: [] } };
+  for (const [lang, str] of [['ko', ko], ['en', en]]) {
+    const seen = new Set();
+    for (const w of str.split(/\s+/).filter(Boolean)) {
+      const n = normalizeWord(w, lang);
+      if (!n) { console.warn(`dropped ${id}/${lang}: ${w}`); continue; }
+      if (!seen.has(n)) { seen.add(n); entry[lang].words.push(n); }
+    }
+  }
+  out.push(entry);
+}
+writeFileSync(new URL('../data/categories.json', import.meta.url), JSON.stringify(out, null, 1), 'utf8');
+console.log(`wrote ${out.length} categories`);
