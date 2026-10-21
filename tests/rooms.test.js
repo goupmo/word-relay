@@ -1,6 +1,6 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createRooms } from '../server/rooms.js';
+import { createRooms } from '../shared/rooms.js';
 
 const KO = new Set(['사자', '나비', '다람쥐', '라마', '마늘', '바나나']);
 const categories = [{ id: 'animal', ko: { name: '동물', words: ['사자'] }, en: { name: 'Animals', words: ['lion'] } }];

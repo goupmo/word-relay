@@ -6,3 +6,4 @@ Task 2: complete (npm test -> 9/9). Ruling: words need >=2 chars in both languag
 Task 3: complete (npm test -> 21/21)
 Task 4: complete (npm test -> 31/31). Ruling: vote resolves early once the outcome cannot change (majority reached or unreachable) - faster than waiting for all voters; cost if wrong: none. Ruling: each word can be challenged once (pending cleared after any vote).
 Task 5: complete (npm test -> 50/50). Ruling: added host-only {t:'restart'} (done->lobby) and engine dropPlayer() (not in plan) - needed for disconnects/replay; cost: none. Ruling: server messages carry one 'event' {seq,type,...} per broadcast so clients can play sounds.
+Ruling: moved server/rooms.js -> shared/rooms.js so single mode runs the same room engine in the browser with an AI player (one UI path for both modes); cost if wrong: none (pure move, tests green).

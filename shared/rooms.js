@@ -1,7 +1,7 @@
-import {
+﻿import {
   createRound, submitWord, tick as tickRound, startObjection, castVote, resolveVote, dropPlayer,
   createMatch, recordRound,
-} from '../shared/game.js';
+} from './game.js';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
 const BETWEEN_MS = 5000;

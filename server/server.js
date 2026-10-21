@@ -1,10 +1,10 @@
-import http from 'node:http';
+﻿import http from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
-import { createRooms } from './rooms.js';
+import { createRooms } from '../shared/rooms.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TYPES = {
