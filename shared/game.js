@@ -75,6 +75,24 @@ export function submitWord(round, playerId, raw, dict, now) {
   return { ok: true };
 }
 
+// A player left the game (disconnect). Same as being eliminated, but the turn only moves
+// if it was theirs, and a vote about their word is cancelled.
+export function dropPlayer(round, playerId, now) {
+  const idx = round.players.findIndex((p) => p.id === playerId);
+  if (idx < 0 || !round.players[idx].alive || round.winners) return;
+  if (round.vote?.targetId === playerId) {
+    round.deadline = now + round.vote.remainingMs;
+    round.vote = null;
+  }
+  if (round.pending?.playerId === playerId) round.pending = null;
+  if (idx === round.turn && !round.vote) {
+    eliminate(round, idx, now);
+  } else {
+    round.players[idx].alive = false;
+    finishIfOver(round);
+  }
+}
+
 export const VOTE_MS = 8000;
 
 export function startObjection(round, objectorId, now) {
@@ -117,6 +135,10 @@ export function resolveVote(round, now) {
   round.pending = null; // each word can be challenged only once
   if (yes * 2 <= voters.length) {
     round.deadline = now + v.remainingMs;
+    if (!round.winners && !round.players[round.turn].alive) {
+      round.turn = nextAlive(round, round.turn); // the player on turn left during the vote
+      round.deadline = now + round.timeLimitMs;
+    }
     return 'rejected';
   }
   round.usedWords = round.usedWords.filter((w) => w !== v.word);
