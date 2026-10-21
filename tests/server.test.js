@@ -15,6 +15,9 @@ test('serves static files, blocks path traversal, and plays a websocket handshak
   assert.equal(mod.status, 200);
   assert.match(mod.headers.get('content-type'), /javascript/);
   assert.equal((await fetch(base + '/data/categories.json')).status, 200);
+  const dict = await fetch(base + '/data/dict-ko.json');
+  assert.match(dict.headers.get('cache-control'), /max-age=86400/); // big word lists should not be re-downloaded every visit
+  assert.equal(home.headers.get('cache-control'), 'no-cache');
   assert.equal((await fetch(base + '/..%2Fpackage.json')).status, 404);
   assert.equal((await fetch(base + '/nope.txt')).status, 404);
 

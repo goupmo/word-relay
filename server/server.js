@@ -53,7 +53,8 @@ export function start(port = Number(process.env.PORT) || 3000) {
     if (!file) { res.writeHead(404, { 'content-type': 'text/plain' }); return res.end('Not found'); }
     const { raw, gz } = load(file);
     const headers = { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream' };
-    if (/\.(json|js|css|html|svg)$/.test(file)) headers['cache-control'] = 'no-cache';
+    // Word lists are big and rarely change; everything else revalidates so deploys show up at once.
+    headers['cache-control'] = file.endsWith('.json') && file.includes(`${path.sep}data${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
     if (gz && /\bgzip\b/.test(req.headers['accept-encoding'] ?? '')) {
       res.writeHead(200, { ...headers, 'content-encoding': 'gzip', vary: 'accept-encoding' });
       return res.end(gz);
