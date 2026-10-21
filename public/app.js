@@ -3,6 +3,7 @@ import { play, setMuted, isMuted, unlock } from './sfx.js';
 import { connect } from './net.js';
 import { createLocal } from './local.js';
 import { config } from './config.js';
+import { mountAds } from './ads.js';
 import { KO_LETTERS, EN_LETTERS, normalizeWord, initialOf } from '../shared/chars.js';
 
 const $ = (id) => document.getElementById(id);
@@ -36,6 +37,7 @@ const nameOf = (id) => st.names[id] ?? '?';
 function show(screen) {
   document.querySelectorAll('[data-screen]').forEach((el) => { el.hidden = el.id !== `s-${screen}`; });
   window.scrollTo(0, 0);
+  setTimeout(mountAds, 0);
 }
 const currentScreen = () => [...document.querySelectorAll('[data-screen]')].find((e) => !e.hidden)?.id.slice(2);
 
@@ -148,6 +150,7 @@ function renderBetween(v) {
   const over = v.phase === 'between' || v.phase === 'done';
   $('between').hidden = !over;
   if (!over) return;
+  setTimeout(mountAds, 0);
   const sorted = [...v.players].sort((a, b) => b.score - a.score);
   let title;
   if (v.phase === 'between') {

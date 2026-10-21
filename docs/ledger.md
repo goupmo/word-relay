@@ -14,3 +14,5 @@ Ruling: no auto-reconnect in online mode; a dropped socket already removes the p
 Ruling: Enter handling = submit once after IME composition ends (compositionend) or immediately when not composing, 400ms duplicate guard - covers Chrome and Safari orders; NOT verified with a real Korean IME (automation types plain characters).
 Ruling: added public/local.js (solo host: shared room engine + AI player in the browser).
 Ruling: Kakao share uses the text template (no image needed); needs kakaoJsKey and a registered Web domain, NOT verifiable without the user's key.
+Task 8: complete (ads.js no-ops without adfitUnitId; slots only on home/lobby/result; about+privacy pages served 200; hook findings fixed: removed 2 glow shadows, raised used-key and danger-button contrast). Ruling: privacy.html uses placeholder contact@example.com (user's real email not published without consent) - MUST be replaced before ad review; AdFit script injection NOT verified without an account.
+Task 9: partial - render.yaml + README written; actual deploy, Kakao key and AdFit id need the user's accounts (stop condition: side effect outside this worktree).
