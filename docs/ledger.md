@@ -1,4 +1,4 @@
-﻿# ledger — plan: docs/superpowers/plans/2026-10-21-word-relay-online.md
+# ledger — plan: docs/superpowers/plans/2026-10-21-word-relay-online.md
 Pre-flight: tasks share interfaces via shared/game.js, Dict {has}; consistent.
 Task 1: complete (npm test -> 6/6 pass)
 Ruling: npm script uses glob (node --test tests/*.test.js) because Node 24 rejects a directory arg — cost if wrong: none

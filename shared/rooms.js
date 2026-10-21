@@ -1,4 +1,4 @@
-﻿import {
+import {
   createRound, submitWord, tick as tickRound, startObjection, castVote, resolveVote, dropPlayer,
   createMatch, recordRound,
 } from './game.js';

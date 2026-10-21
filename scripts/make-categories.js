@@ -1,4 +1,4 @@
-﻿// Writes data/categories.json from the word lists below. Original wording, written for this game.
+// Writes data/categories.json from the word lists below. Original wording, written for this game.
 // Run: node scripts/make-categories.js
 import { writeFileSync } from 'node:fs';
 import { normalizeWord } from '../shared/chars.js';
