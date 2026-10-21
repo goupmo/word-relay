@@ -1064,7 +1064,17 @@
     "mattress",
     "counter",
     "closet",
-    "bookcase"
+    "bookcase",
+    "ottoman",
+    "bunkbed",
+    "crib",
+    "hutch",
+    "vanity",
+    "recliner",
+    "sideboard",
+    "bedframe",
+    "tablecloth",
+    "lampshade"
    ]
   }
  },
@@ -1345,7 +1355,17 @@
     "bongo",
     "maracas",
     "cornet",
-    "horn"
+    "horn",
+    "kazoo",
+    "lute",
+    "zither",
+    "sitar",
+    "didgeridoo",
+    "bugle",
+    "fiddle",
+    "tabla",
+    "marimba",
+    "clavichord"
    ]
   }
  },
@@ -1434,7 +1454,18 @@
     "jasmine",
     "ivy",
     "bush",
-    "tree"
+    "tree",
+    "thistle",
+    "sage",
+    "basil",
+    "mint",
+    "thyme",
+    "crocus",
+    "petunia",
+    "begonia",
+    "hydrangea",
+    "gardenia",
+    "sequoia"
    ]
   }
  },
@@ -1527,7 +1558,17 @@
     "comet",
     "earthquake",
     "tornado",
-    "planet"
+    "planet",
+    "pond",
+    "stream",
+    "ocean",
+    "cliff",
+    "hill",
+    "reef",
+    "tide",
+    "dune",
+    "lagoon",
+    "swamp"
    ]
   }
  },
@@ -1614,7 +1655,17 @@
     "skillet",
     "saucepan",
     "mug",
-    "tray"
+    "tray",
+    "fridge",
+    "freezer",
+    "pitcher",
+    "jar",
+    "lid",
+    "cleaver",
+    "wok",
+    "steamer",
+    "thermos",
+    "corkscrew"
    ]
   }
  },
@@ -1701,7 +1752,17 @@
     "weevil",
     "earwig",
     "gnat",
-    "mite"
+    "mite",
+    "bumblebee",
+    "mayfly",
+    "stinkbug",
+    "lacebug",
+    "sawfly",
+    "lacewing",
+    "katydid",
+    "cutworm",
+    "maggot",
+    "grub"
    ]
   }
  },
@@ -1796,7 +1857,17 @@
     "trout",
     "herring",
     "swordfish",
-    "piranha"
+    "piranha",
+    "clownfish",
+    "stingray",
+    "nautilus",
+    "barracuda",
+    "marlin",
+    "bluefin",
+    "sturgeon",
+    "haddock",
+    "perch",
+    "bass"
    ]
   }
  },
@@ -1888,7 +1959,17 @@
     "vulture",
     "hummingbird",
     "cardinal",
-    "condor"
+    "condor",
+    "sandpiper",
+    "pheasant",
+    "quail",
+    "oriole",
+    "thrush",
+    "wren",
+    "jay",
+    "puffin",
+    "albatross",
+    "toucan"
    ]
   }
  },
@@ -1972,7 +2053,17 @@
     "mallet",
     "sander",
     "crowbar",
-    "toolbox"
+    "toolbox",
+    "wedge",
+    "awl",
+    "trowel",
+    "shears",
+    "spade",
+    "pitchfork",
+    "hacksaw",
+    "clamp",
+    "plane",
+    "screwgun"
    ]
   }
  },
@@ -2062,7 +2153,17 @@
     "fudge",
     "nougat",
     "sundae",
-    "cheesecake"
+    "cheesecake",
+    "jam",
+    "honey",
+    "syrup",
+    "custard",
+    "tiramisu",
+    "pavlova",
+    "flan",
+    "cobbler",
+    "strudel",
+    "gumdrop"
    ]
   }
  },
@@ -2150,7 +2251,16 @@
     "drone",
     "projector",
     "scanner",
-    "webcam"
+    "webcam",
+    "oven",
+    "stove",
+    "soundbar",
+    "camcorder",
+    "smartwatch",
+    "earbuds",
+    "trackpad",
+    "modem",
+    "tv"
    ]
   }
  },
@@ -2238,7 +2348,17 @@
     "geometry",
     "calculus",
     "astronomy",
-    "language"
+    "language",
+    "latin",
+    "french",
+    "spanish",
+    "german",
+    "arts",
+    "crafts",
+    "health",
+    "civics",
+    "robotics",
+    "geology"
    ]
   }
  },
@@ -2328,7 +2448,17 @@
     "ranch",
     "orchard",
     "bakery",
-    "salon"
+    "salon",
+    "tower",
+    "castle",
+    "palace",
+    "bridge",
+    "square",
+    "garage",
+    "warehouse",
+    "prison",
+    "harborside",
+    "villa"
    ]
   }
  },
@@ -2424,7 +2554,17 @@
     "boston",
     "chicago",
     "seattle",
-    "miami"
+    "miami",
+    "rio",
+    "cusco",
+    "kyoto",
+    "seville",
+    "venice",
+    "florence",
+    "amsterdam",
+    "brussels",
+    "warsaw",
+    "budapest"
    ]
   }
  },
@@ -2517,7 +2657,17 @@
     "azure",
     "ruby",
     "emerald",
-    "cream"
+    "cream",
+    "rose",
+    "salmon",
+    "lilac",
+    "plum",
+    "charcoal",
+    "sapphire",
+    "bronze",
+    "copper",
+    "mustard",
+    "rust"
    ]
   }
  },
@@ -2605,7 +2755,16 @@
     "skating",
     "acting",
     "writing",
-    "blogging"
+    "blogging",
+    "bowls",
+    "archery",
+    "rowing",
+    "karaoke",
+    "bingo",
+    "weaving",
+    "woodwork",
+    "birdwatching",
+    "scrapbooking"
    ]
   }
  },
@@ -2696,7 +2855,17 @@
     "owner",
     "parent",
     "sibling",
-    "twin"
+    "twin",
+    "neighbour",
+    "stranger",
+    "citizen",
+    "actress",
+    "prince",
+    "princess",
+    "king",
+    "queen",
+    "knight",
+    "emperor"
    ]
   }
  },
@@ -2781,7 +2950,17 @@
     "carousel",
     "hoop",
     "frisbee",
-    "scooter"
+    "scooter",
+    "teether",
+    "jigsaw",
+    "kaleidoscope",
+    "ragdoll",
+    "beanbag",
+    "dollhouse",
+    "abacus",
+    "slingshot",
+    "nutcracker",
+    "pinwheel"
    ]
   }
  }

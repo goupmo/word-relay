@@ -1,4 +1,4 @@
-// Writes data/categories.json from the word lists below. Original wording, written for this game.
+﻿// Writes data/categories.json from the word lists below. Original wording, written for this game.
 // Run: node scripts/make-categories.js
 import { writeFileSync } from 'node:fs';
 import { normalizeWord } from '../shared/chars.js';
@@ -97,8 +97,31 @@ const C = [
  'doll block lego puzzle top kite ball marbles dice robot balloon bubble yoyo teddy figure model blocks cards tricycle swing slide seesaw trampoline rattle puppet playdough sandbox slinky carousel hoop frisbee scooter'],
 ];
 
+// More English words for categories that need to reach 40.
+const EXTRA_EN = {
+  furniture: 'ottoman bunkbed crib hutch vanity recliner sideboard bedframe tablecloth lampshade',
+  instrument: 'kazoo lute zither sitar didgeridoo bugle fiddle tabla marimba clavichord',
+  plant: 'thistle sage basil mint thyme crocus petunia begonia hydrangea gardenia sequoia',
+  nature: 'pond stream ocean cliff hill reef tide dune lagoon swamp',
+  kitchen: 'fridge freezer pitcher jar lid cleaver wok steamer thermos corkscrew',
+  insect: 'bumblebee mayfly stinkbug lacebug sawfly lacewing katydid cutworm maggot grub',
+  sea: 'clownfish stingray nautilus barracuda marlin bluefin sturgeon haddock perch bass',
+  bird: 'sandpiper pheasant quail oriole thrush wren jay puffin albatross toucan',
+  tool: 'wedge awl trowel shears spade pitchfork hacksaw clamp plane screwgun',
+  dessert: 'jam honey syrup custard tiramisu pavlova flan cobbler strudel gumdrop',
+  electronics: 'oven stove soundbar camcorder television smartwatch earbuds trackpad modem tv',
+  subject: 'latin french spanish german arts crafts health civics robotics geology',
+  place: 'tower castle palace bridge square garage warehouse prison harborside villa',
+  city: 'rio cusco kyoto seville venice florence amsterdam brussels warsaw budapest',
+  color: 'rose salmon lilac plum charcoal sapphire bronze copper mustard rust',
+  hobby: 'bowls archery rowing karaoke bingo pottery weaving woodwork birdwatching scrapbooking',
+  people: 'neighbour stranger citizen actress prince princess king queen knight emperor',
+  toy: 'teether jigsaw kaleidoscope ragdoll beanbag dollhouse abacus slingshot nutcracker pinwheel',
+};
+
 const out = [];
-for (const [id, koName, enName, ko, en] of C) {
+for (const [id, koName, enName, ko, en0] of C) {
+  const en = `${en0} ${EXTRA_EN[id] ?? ''}`;
   const entry = { id, ko: { name: koName, words: [] }, en: { name: enName, words: [] } };
   for (const [lang, str] of [['ko', ko], ['en', en]]) {
     const seen = new Set();
@@ -112,3 +135,4 @@ for (const [id, koName, enName, ko, en] of C) {
 }
 writeFileSync(new URL('../data/categories.json', import.meta.url), JSON.stringify(out, null, 1), 'utf8');
 console.log(`wrote ${out.length} categories`);
+
