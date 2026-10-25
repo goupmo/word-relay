@@ -9,7 +9,7 @@ import { KO_LETTERS, EN_LETTERS, normalizeWord, initialOf } from '../shared/char
 const $ = (id) => document.getElementById(id);
 const RING = 326.73;
 const DICT_VERSION = 2; // 2: one-letter words allowed
-const COLORS = ['#ffc83d', '#5cc8ff', '#ff8fab', '#7ee8a5'];
+const COLORS = ['#ffc83d', '#3db5ff', '#ff8fc4', '#2fd6a0'];
 const lettersOf = (lang) => (lang === 'ko' ? KO_LETTERS : EN_LETTERS);
 const store = {
   get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -187,6 +187,21 @@ function renderBetween(v) {
   $('end-wait').textContent = t('waitAgain');
 }
 
+/* ---------- confetti ---------- */
+function confetti() {
+  const box = document.createElement('div');
+  box.className = 'confetti';
+  box.setAttribute('aria-hidden', 'true');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  for (let i = 0; i < 32; i++) {
+    const p = document.createElement('i');
+    p.style.cssText = `--c:${COLORS[i % COLORS.length]};--x:${rnd(-170, 170)}px;--y:${rnd(60, 340)}px;--r:${rnd(-540, 540)}deg;--d:${rnd(0, 0.18)}s`;
+    box.append(p);
+  }
+  document.body.append(box);
+  setTimeout(() => box.remove(), 1900);
+}
+
 /* ---------- events, sounds ---------- */
 function handleEvent(v) {
   const e = v.event;
@@ -197,7 +212,7 @@ function handleEvent(v) {
     else if (e.type === 'vote_start') play('object');
     else if (e.type === 'vote_result') { play(e.result === 'upheld' ? 'ok' : 'fail'); toast(e.result === 'upheld' ? t('voteUpheld') : t('voteRejected')); }
   }
-  if ((v.phase === 'between' || v.phase === 'done') && st.prevPhase === 'round' && (st.mode === 'hotseat' ? v.round.winners?.length : v.round.winners?.includes(st.you))) play('win');
+  if ((v.phase === 'between' || v.phase === 'done') && st.prevPhase === 'round' && (st.mode === 'hotseat' ? v.round.winners?.length : v.round.winners?.includes(st.you))) { play('win'); confetti(); }
   st.prevPhase = v.phase;
 }
 
@@ -530,6 +545,19 @@ $('btn-brand').addEventListener('click', () => (st.transport ? leaveRoom() : sho
 $('btn-lang').addEventListener('click', () => { setLang(getLang() === 'ko' ? 'en' : 'ko'); applyI18n(); });
 $('btn-mute').addEventListener('click', () => { unlock(); setMuted(!isMuted()); applyI18n(); });
 document.addEventListener('pointerdown', unlock, { once: true });
+
+/* ---------- install as an app (Chrome) ---------- */
+let installEvent = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; $('btn-install').hidden = false; });
+window.addEventListener('appinstalled', () => { installEvent = null; $('btn-install').hidden = true; });
+$('btn-install').addEventListener('click', async () => {
+  if (!installEvent) return;
+  installEvent.prompt();
+  await installEvent.userChoice;
+  installEvent = null;
+  $('btn-install').hidden = true;
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {}); // the game works without it
 
 setLang(getLang());
 applyI18n();

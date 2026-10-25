@@ -15,6 +15,21 @@ test('serves static files, blocks path traversal, and plays a websocket handshak
   assert.equal(mod.status, 200);
   assert.match(mod.headers.get('content-type'), /javascript/);
   assert.equal((await fetch(base + '/data/categories.json')).status, 200);
+  // installable app: manifest with icons that exist, and a service worker served from the root
+  const mf = await fetch(base + '/manifest.webmanifest');
+  assert.equal(mf.status, 200);
+  assert.match(mf.headers.get('content-type'), /manifest\+json/);
+  const manifest = await mf.json();
+  assert.equal(manifest.display, 'standalone');
+  assert.equal(manifest.start_url, '/');
+  const sizes = manifest.icons.map((i) => `${i.sizes}:${i.purpose ?? 'any'}`);
+  for (const need of ['192x192:any', '512x512:any', '512x512:maskable']) assert.ok(sizes.includes(need), need);
+  for (const icon of manifest.icons) assert.equal((await fetch(base + icon.src)).status, 200, icon.src);
+  const sw = await fetch(base + '/sw.js');
+  assert.equal(sw.status, 200);
+  assert.match(sw.headers.get('content-type'), /javascript/);
+  assert.match(await home.text(), /rel="manifest"/);
+
   const dict = await fetch(base + '/data/dict-ko.json');
   assert.match(dict.headers.get('cache-control'), /max-age=86400/); // big word lists should not be re-downloaded every visit
   assert.equal(home.headers.get('cache-control'), 'no-cache');

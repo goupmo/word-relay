@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><clipPath id="r"><rect width="512" height="512" rx="112"/></clipPath><g clip-path="url(#r)"><rect width="512" height="512" rx="0" fill="#7c5cff"/>
+  <circle cx="440" cy="60" r="170" fill="#9a82ff"/><circle cx="40" cy="520" r="150" fill="#6a49f0"/>
+  <g transform="rotate(-9 176 208)">
+    <rect x="64" y="116" width="224" height="224" rx="46" fill="#232a5c"/>
+    <rect x="64" y="92" width="224" height="224" rx="46" fill="#ffffff" stroke="#232a5c" stroke-width="14"/>
+    <path d="M120 150 H232 V262" stroke="#232a5c" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <g transform="rotate(8 340 344)">
+    <rect x="232" y="260" width="216" height="216" rx="46" fill="#232a5c"/>
+    <rect x="232" y="236" width="216" height="216" rx="46" fill="#ffc83d" stroke="#232a5c" stroke-width="14"/>
+    <path d="M282 400 L340 282 L398 400" stroke="#232a5c" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M304 362 H376" stroke="#232a5c" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <circle cx="402" cy="112" r="38" fill="#ff5d73" stroke="#232a5c" stroke-width="12"/>
+  <circle cx="92" cy="430" r="26" fill="#2fd6a0" stroke="#232a5c" stroke-width="12"/></g></svg>

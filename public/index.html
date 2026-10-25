@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>단어 릴레이 배틀</title>
 <meta name="description" content="카테고리에 맞는 단어를 아직 안 쓴 글자로 시작해 입력하는 턴제 단어 게임. 친구와 실시간 대전, 혼자서도 즐겨요.">
-<meta name="theme-color" content="#14172e">
+<meta name="theme-color" content="#c9ecff">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
@@ -14,8 +17,9 @@
 <body>
 <div id="app">
   <header class="top">
-    <button id="btn-brand" class="brand" type="button"><span class="brand-mark" aria-hidden="true">Aa</span><span data-i18n="title"></span></button>
+    <button id="btn-brand" class="brand" type="button"><img src="/icon.svg" alt="" width="40" height="40"><span data-i18n="title"></span></button>
     <div class="top-right">
+      <button id="btn-install" class="chip" type="button" data-i18n="install" hidden></button>
       <button id="btn-lang" class="chip" type="button"></button>
       <button id="btn-mute" class="chip" type="button"></button>
     </div>
