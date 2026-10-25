@@ -116,9 +116,10 @@ button, input, select { font: inherit; color: inherit; }
 /* The dial fills all the height that is left. Letters sit on an ellipse around the timer: --k is the letter size,
    --a each letter's angle. Size units (cqw/cqh) are relative to .dial, so the ring follows the space it is given. */
 .dial-wrap { container-type: size; display: grid; place-items: center; }
-.dial { position: relative; width: min(100cqw, 560px); height: 100cqh; container-type: size; --k: clamp(26px, min(15cqw, 16cqh), 62px); }
-.dial[data-lang="en"] { --k: clamp(15px, min(8.5cqw, 9.5cqh), 50px); }
-.keys { position: absolute; inset: 0; }
+.dial { width: min(100cqw, 560px); height: 100cqh; container-type: size; display: grid; grid-template-columns: repeat(var(--c, 5), 1fr); grid-template-rows: repeat(var(--r, 4), 1fr); place-items: center; --cs: calc(var(--c, 5) - 2); --rws: calc(var(--r, 4) - 2); }
+/* Letters fill the cells along the edge of the grid, the timer takes the hole in the middle. */
+.dial { --k: clamp(15px, min(100cqw / var(--c, 5), 100cqh / var(--r, 4)) - 8px, 64px); }
+.keys { display: contents; }
 .key {
   --kc: #fff; min-height: 0; display: grid; place-items: center; border-radius: 14px; background: var(--kc); color: var(--ink); border: var(--bd);
   font: clamp(20px, 6vw, 28px) var(--display); box-shadow: 0 5px 0 var(--ink);
@@ -126,10 +127,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 .hero-keys .key { aspect-ratio: 1; }
 .dial .key {
-  position: absolute; width: var(--k); height: var(--k); border-radius: calc(var(--k) * .26);
-  left: calc(50% + (50cqw - var(--k) / 2 - 6px) * sin(var(--a)));
-  top: calc(50% - (50cqh - var(--k) / 2 - 8px) * cos(var(--a)));
-  translate: -50% -50%;
+  width: var(--k); height: var(--k); border-radius: calc(var(--k) * .26);
   font-family: var(--display); font-size: calc(var(--k) * .54);
   border-width: clamp(2px, calc(var(--k) * .06), 3px); box-shadow: 0 clamp(2px, calc(var(--k) * .08), 5px) 0 var(--ink);
 }
@@ -144,7 +142,7 @@ button, input, select { font: inherit; color: inherit; }
 .key.lit { --kc: var(--sun); transform: translateY(-5px) scale(1.1) rotate(-3deg); box-shadow: 0 9px 0 var(--ink); }
 .dial .key.lit { transform: scale(1.22); z-index: 2; box-shadow: 0 calc(var(--k) * .12) 0 var(--ink); }
 
-.dial-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; --rs: clamp(52px, min(100cqw - 2 * var(--k) - 30px, 100cqh - 2 * var(--k) - 30px), 240px); }
+.dial-center { grid-column: 2 / span var(--cs); grid-row: 2 / span var(--rws); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; --rs: clamp(34px, min(100cqw / var(--c, 5) * var(--cs), 100cqh / var(--r, 4) * var(--rws)) - 14px, 250px); }
 .ring { position: relative; width: var(--rs); height: var(--rs); }
 .ring::before { content: ''; position: absolute; inset: 9%; border-radius: 50%; background: var(--paper); border: var(--bd); box-shadow: 0 4px 0 var(--ink); }
 .ring svg { position: relative; width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -231,10 +229,6 @@ body.in-game .top { flex: none; }
 .tiny .cand { flex: none; min-height: 38px; font-size: 19px; }
 .tiny .entry input { min-height: 42px; }
 .tiny .mic, .tiny .entry .btn { min-height: 44px; }
-/* Keyboard-up height: smaller letters and timer so the ring never touches itself. */
-.tiny .dial { --k: clamp(15px, 14cqh, 22px); }
-.tiny .dial[data-lang="en"] { --k: 17px; }
-.tiny .dial-center { --rs: clamp(34px, min(100cqw - 2 * var(--k) - 30px, 100cqh - 2 * var(--k) - 26px), 220px); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

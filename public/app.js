@@ -70,9 +70,17 @@ function buildKeys(lang) {
   st.keysLang = lang;
   const letters = lettersOf(lang);
   $('dial').dataset.lang = lang;
-  // Letters go round the timer, the first one at the top; --a is its angle on the ring.
+  // Letters run clockwise round the edge of a grid (first one top-left); the timer sits in the hole in the middle.
+  const c = lang === 'ko' ? 5 : 8, r = lang === 'ko' ? 4 : 6;
+  $('dial').style.setProperty('--c', c);
+  $('dial').style.setProperty('--r', r);
+  const cells = [];
+  for (let x = 1; x <= c; x++) cells.push([1, x]);
+  for (let y = 2; y < r; y++) cells.push([y, c]);
+  for (let x = c; x >= 1; x--) cells.push([r, x]);
+  for (let y = r - 1; y >= 2; y--) cells.push([y, 1]);
   $('keys').innerHTML = letters.map((l, i) =>
-    `<span class="key" data-l="${l}" style="--a:${((360 / letters.length) * i).toFixed(2)}deg">${lang === 'ko' ? l : l.toUpperCase()}</span>`).join('');
+    `<span class="key" data-l="${l}" style="grid-area:${cells[i][0]} / ${cells[i][1]}">${lang === 'ko' ? l : l.toUpperCase()}</span>`).join('');
 }
 
 /* ---------- rendering ---------- */
