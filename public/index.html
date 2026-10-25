@@ -45,9 +45,9 @@
     <section id="s-setup" class="screen" data-screen hidden>
       <form id="setup-form" class="card" autocomplete="off">
         <h2 id="setup-title"></h2>
-        <label class="field" id="row-name"><span id="name-label" data-i18n="name"></span><input id="f-name" maxlength="12" required data-i18n-ph="namePh"></label>
         <label class="field" id="row-humans"><span data-i18n="humans"></span>
           <select id="f-humans"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+        <label class="field" id="row-name"><span id="name-label" data-i18n="name"></span><input id="f-name" maxlength="12" required data-i18n-ph="namePh"></label>
         <div id="row-names">
           <label class="field"><span data-i18n="name2"></span><input id="f-n2" maxlength="12" data-i18n-ph="namePh"></label>
           <label class="field" id="row-n3"><span data-i18n="name3"></span><input id="f-n3" maxlength="12" data-i18n-ph="namePh"></label>
@@ -104,12 +104,12 @@
       </div>
       <div class="keys" id="keys" aria-hidden="true"></div>
       <div class="cands" id="cands" hidden></div>
+      <p class="hint" id="hint" role="status"></p>
       <form id="entry" class="entry" autocomplete="off">
         <button id="btn-mic" class="btn mic" type="button" hidden></button>
         <input id="word" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" data-i18n-ph="wordPh">
         <button id="btn-submit" class="btn primary" type="submit" data-i18n="submit"></button>
       </form>
-      <p class="hint" id="hint" role="status"></p>
 
       <div class="overlay" id="vote" hidden>
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="vote-title">

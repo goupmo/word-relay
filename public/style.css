@@ -69,8 +69,10 @@ button, input, select { font: inherit; color: inherit; }
 .field input::placeholder { color: #7d86b5; }
 .check { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; font-size: 16px; cursor: pointer; }
 .check input { width: 24px; height: 24px; accent-color: var(--grape); }
-.cands { position: sticky; bottom: calc(100px + env(safe-area-inset-bottom) + var(--kb, 0px)); z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 0 12px; padding: 4px 0 8px; }
-.cand { font: 26px var(--display); min-height: 58px; padding: 6px 22px; border: var(--bd); border-radius: 16px; cursor: pointer; background: var(--sun); color: var(--ink); box-shadow: var(--pop); transition: transform .08s, box-shadow .08s; }
+/* Suggestions sit in the normal flow between the letters and the entry bar, so they cover nothing.
+   Two rows at most: the newest come first and older ones are cut off. */
+.cands { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 8px 10px; max-height: 112px; overflow: hidden; margin: 4px 0 6px; padding: 0 0 6px; }
+.cand { font: 24px var(--display); min-height: 50px; padding: 2px 16px 4px; border: var(--bd); border-radius: 14px; cursor: pointer; background: var(--sun); color: var(--ink); box-shadow: 0 4px 0 var(--ink); transition: transform .08s, box-shadow .08s; }
 .cand:nth-child(3n+2) { background: var(--mint); }
 .cand:nth-child(3n) { background: var(--pink); }
 .cand:active { transform: translateY(5px); box-shadow: none; }
@@ -120,9 +122,12 @@ button, input, select { font: inherit; color: inherit; }
 .bubble.warn { background: #fff3c4; }
 .bubble .who { font: 14px var(--body); color: var(--muted); }
 
-.keys { display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); gap: 9px; margin: 14px 2px 20px; }
+/* The letter grid takes whatever height is left on the game screen (rows share it equally, capped at a
+   comfortable size), so a short screen makes the letters smaller instead of pushing something under another. */
+.keys { display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows, 2), minmax(0, 1fr)); gap: 9px; margin: 12px 2px 8px; flex: 1 1 0; min-height: 80px; max-height: calc(var(--rows, 2) * 62px + 16px); }
+.hero-keys .key { aspect-ratio: 1; }
 .key {
-  --kc: #fff; aspect-ratio: 1; display: grid; place-items: center; border-radius: 14px; background: var(--kc); color: var(--ink); border: var(--bd);
+  --kc: #fff; min-height: 0; display: grid; place-items: center; border-radius: 14px; background: var(--kc); color: var(--ink); border: var(--bd);
   font: clamp(20px, 6vw, 28px) var(--display); box-shadow: 0 5px 0 var(--ink);
   transition: transform .09s, box-shadow .09s, background .09s; user-select: none;
 }
@@ -135,11 +140,20 @@ button, input, select { font: inherit; color: inherit; }
 .key.used { transform: translateY(5px); background: #d5d9ea; color: #8089b8; border-color: #8f98c4; box-shadow: none; text-decoration: line-through; text-decoration-thickness: 3px; }
 .key.lit { --kc: var(--sun); transform: translateY(-5px) scale(1.1) rotate(-3deg); box-shadow: 0 9px 0 var(--ink); }
 
-.entry { position: sticky; bottom: calc(max(10px, env(safe-area-inset-bottom)) + var(--kb, 0px)); display: flex; gap: 10px; padding: 10px; background: var(--paper); border: var(--bd); border-radius: 24px; box-shadow: 0 6px 0 var(--ink); }
+.entry { margin-top: auto; display: flex; gap: 10px; padding: 10px; background: var(--paper); border: var(--bd); border-radius: 24px; box-shadow: 0 6px 0 var(--ink); }
 .entry input { flex: 1; min-width: 0; background: var(--soft); color: var(--ink); border: var(--bd); border-radius: 16px; padding: 0 16px; font-size: 22px; min-height: 54px; }
 .entry input::placeholder { color: #7d86b5; }
 .entry input:disabled { opacity: .5; }
-.hint { min-height: 1.6em; margin: 10px 4px 0; color: var(--coral-d); font-size: 15px; text-align: center; }
+.hint { min-height: 1.5em; margin: 0 4px 8px; color: var(--coral-d); font-size: 15px; text-align: center; }
+
+/* Game screen: one column exactly as tall as the visible viewport; nothing scrolls, nothing overlaps. */
+body.in-game { overflow: hidden; }
+body.in-game #app { height: var(--vh, 100dvh); position: relative; top: var(--vtop, 0px); display: flex; flex-direction: column; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+body.in-game main { flex: 1; min-height: 0; }
+body.in-game .game { height: 100%; display: flex; flex-direction: column; padding-bottom: 0; }
+body.in-game .game > * { flex: none; }
+body.in-game .game > .keys { flex: 1 1 0; }
+body.in-game .top { flex: none; }
 
 .overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: #232a5c8c; backdrop-filter: blur(3px); }
 .sheet { width: min(100%, 420px); max-height: 92dvh; overflow: auto; background: var(--paper); border: var(--bd); border-radius: 28px; padding: 22px 18px; text-align: center; box-shadow: 0 8px 0 var(--ink); animation: pop .28s cubic-bezier(.3, 1.6, .5, 1); }
@@ -153,7 +167,8 @@ button, input, select { font: inherit; color: inherit; }
 .rank .pts { margin-left: auto; font: 21px var(--display); color: var(--grape-d); }
 .rank li.win .pts { color: var(--ink); }
 
-#toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom) + var(--kb, 0px)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 30; max-width: min(92vw, 420px); background: var(--paper); border: var(--bd); box-shadow: var(--pop); border-radius: 16px; padding: 10px 16px; font-size: 16px; text-align: center; transition: opacity .2s, transform .2s; }
+/* The toast shows at the top so it never lands on the letters, suggestions or entry bar. */
+#toast { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top) + var(--vtop, 0px)); transform: translate(-50%, -20px); opacity: 0; pointer-events: none; z-index: 30; max-width: min(92vw, 420px); background: var(--paper); border: var(--bd); box-shadow: var(--pop); border-radius: 16px; padding: 10px 16px; font-size: 16px; text-align: center; transition: opacity .2s, transform .2s; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast.bad { background: #fff3c4; }
 
@@ -183,15 +198,15 @@ button, input, select { font: inherit; color: inherit; }
 .compact .cat-name { justify-self: start; font-size: 26px; margin: 0 0 4px; padding: 0 16px 3px; border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
 .compact .whose { font-size: 18px; margin: 0; }
 .compact .bubble { justify-self: start; margin-top: 4px; font-size: 17px; padding: 3px 6px 3px 12px; }
-.compact .keys { gap: 6px; margin: 8px 2px 10px; }
+.compact .keys { gap: 6px; margin: 6px 2px 6px; }
 .compact .key { border-radius: 10px; border-width: 2px; box-shadow: 0 3px 0 var(--ink); font-size: 20px; }
 .compact .key.used { transform: translateY(3px); }
 .compact .key.lit { transform: translateY(-3px) scale(1.08); box-shadow: 0 6px 0 var(--ink); }
-.compact .hint { margin: 4px; min-height: 1.2em; }
+.compact .hint { margin: 0 4px 4px; min-height: 1.2em; }
 .compact .entry { padding: 6px; border-radius: 18px; }
 .compact .entry input { min-height: 46px; font-size: 20px; }
-.compact .cands { bottom: calc(66px + env(safe-area-inset-bottom) + var(--kb, 0px)); }
-.compact #toast { bottom: calc(70px + env(safe-area-inset-bottom) + var(--kb, 0px)); }
+.compact .cands { max-height: 92px; margin: 2px 0 4px; padding-bottom: 4px; }
+.compact .cand { font-size: 20px; min-height: 42px; padding: 0 12px 3px; box-shadow: 0 3px 0 var(--ink); }
 
 .tiny .top { display: none; }
 .tiny .players { margin-top: 6px; }
@@ -204,7 +219,9 @@ button, input, select { font: inherit; color: inherit; }
 .tiny .bubble { margin-top: 2px; font-size: 15px; }
 .tiny .keys { gap: 5px; margin: 6px 2px 8px; }
 .tiny .key { font-size: 18px; }
-.tiny .hint { min-height: 0; margin: 2px; }
+.tiny .hint { min-height: 0; margin: 0 4px 2px; }
+.tiny .cands { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; max-height: 48px; }
+.tiny .cand { flex: none; min-height: 38px; font-size: 19px; }
 .tiny .entry input { min-height: 42px; }
 .tiny .mic, .tiny .entry .btn { min-height: 44px; }
 

@@ -37,6 +37,7 @@ function toast(msg, bad = false) {
 const nameOf = (id) => st.names[id] ?? '?';
 function show(screen) {
   document.querySelectorAll('[data-screen]').forEach((el) => { el.hidden = el.id !== `s-${screen}`; });
+  document.body.classList.toggle('in-game', screen === 'game'); // the game screen is sized to fit the viewport exactly
   window.scrollTo(0, 0);
   setTimeout(mountAds, 0);
 }
@@ -69,6 +70,7 @@ function buildKeys(lang) {
   st.keysLang = lang;
   const letters = lettersOf(lang);
   $('keys').style.setProperty('--cols', lang === 'ko' ? 7 : 8);
+  $('keys').style.setProperty('--rows', lang === 'ko' ? 2 : 3);
   $('keys').innerHTML = letters.map((l) => `<span class="key" data-l="${l}">${lang === 'ko' ? l : l.toUpperCase()}</span>`).join('');
 }
 
@@ -265,7 +267,7 @@ function setupLabels() {
   const m = st.setupMode;
   $('setup-title').textContent = t(m === 'single' ? 'single' : m);
   $('setup-go').textContent = t(m === 'single' || m === 'hotseat' ? 'singleGo' : m === 'create' ? 'createGo' : 'joinGo');
-  $('name-label').textContent = m === 'hotseat' ? `${t('name')} 1` : t('name');
+  $('name-label').textContent = t(m === 'hotseat' ? 'name1' : 'name');
 }
 function syncHumans() {
   const n = +$('f-humans').value;
@@ -566,15 +568,18 @@ $('btn-mute').addEventListener('click', () => { unlock(); setMuted(!isMuted()); 
 document.addEventListener('pointerdown', unlock, { once: true });
 
 /* ---------- keep the board visible when the on-screen keyboard is up ---------- */
-// Chrome resizes the page for the keyboard (interactive-widget in the viewport meta); Safari and older
-// browsers only shrink the visual viewport, so lift the entry bar by the covered amount.
-// A short viewport switches to the compact layout: smaller timer, letters right beside it.
+// The game screen is exactly as tall as what is visible (--vh), and the letters shrink to fill what is left,
+// so nothing can end up under the keyboard or under another element. Chrome shrinks the page for the keyboard
+// (interactive-widget in the viewport meta); Safari only shrinks the visual viewport, hence --vtop and --kb.
+// A short viewport switches to a compact layout: smaller timer, letters right beside it.
 const vv = window.visualViewport;
 function fitViewport() {
-  const h = vv ? vv.height : window.innerHeight;
-  const covered = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-  document.documentElement.style.setProperty('--kb', `${Math.round(covered)}px`);
-  document.body.classList.toggle('compact', h < 600);
+  const h = Math.round(vv ? vv.height : window.innerHeight);
+  const root = document.documentElement.style;
+  root.setProperty('--vh', `${h}px`);
+  root.setProperty('--vtop', `${Math.round(vv ? vv.offsetTop : 0)}px`);
+  root.setProperty('--kb', `${Math.round(vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0)}px`);
+  document.body.classList.toggle('compact', h < 820);
   document.body.classList.toggle('tiny', h < 440); // very short: the logo row goes too
 }
 vv?.addEventListener('resize', fitViewport);
