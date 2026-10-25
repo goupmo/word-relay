@@ -2,6 +2,11 @@ const S = {
   ko: {
     title: '단어 릴레이 배틀',
     tagline: '카테고리에 맞는 단어를, 아직 안 쓴 글자로 시작해서 쳐요. 마지막까지 남으면 승리!',
+    hotseat: '한 기기로 여럿이', humans: '사람 수', name2: '2번 닉네임', name3: '3번 닉네임', name4: '4번 닉네임',
+    withAi: 'AI도 같이 하기', aiMax: 'AI와 함께하면 사람은 최대 3명이에요', dupNames: '닉네임이 서로 달라야 해요',
+    player: (n) => `플레이어${n}`, voterTurn: (n) => `${n}님, 투표해 주세요`, passTo: '화면을 다음 사람에게 넘겨 주세요',
+    mic: '음성 입력', micOff: '듣는 중… 눌러서 멈추기', micFail: '음성을 인식하지 못했어요. 다시 말하거나 직접 입력해 주세요.',
+    micDenied: '마이크 사용을 허용해 주세요.',
     single: '혼자 하기', create: '방 만들기', join: '방 입장', code: '방 코드', joinGo: '입장하기',
     name: '닉네임', namePh: '닉네임 (12자 이내)', maxPlayers: '최대 인원', timeLimit: '제한 시간', rounds: '라운드 수',
     sec: '초', people: '명', roundsUnit: '라운드', start: '시작하기', createGo: '방 만들기', singleGo: '게임 시작',
@@ -40,6 +45,11 @@ const S = {
   en: {
     title: 'Word Relay Battle',
     tagline: 'Type a word that fits the category and starts with a letter nobody has used. Last one standing wins!',
+    hotseat: 'Pass and play', humans: 'Players', name2: 'Player 2 nickname', name3: 'Player 3 nickname', name4: 'Player 4 nickname',
+    withAi: 'Add the AI too', aiMax: 'With the AI, up to 3 people', dupNames: 'Nicknames must be different',
+    player: (n) => `Player ${n}`, voterTurn: (n) => `${n}, cast your vote`, passTo: 'Pass the screen to the next player',
+    mic: 'Voice input', micOff: 'Listening… tap to stop', micFail: 'Could not hear that. Say it again or type it.',
+    micDenied: 'Please allow microphone access.',
     single: 'Play solo', create: 'Create room', join: 'Join room', code: 'Room code', joinGo: 'Join',
     name: 'Nickname', namePh: 'Nickname (up to 12)', maxPlayers: 'Max players', timeLimit: 'Time per turn', rounds: 'Rounds',
     sec: 's', people: '', roundsUnit: '', start: 'Start', createGo: 'Create room', singleGo: 'Start game',

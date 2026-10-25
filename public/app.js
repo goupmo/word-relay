@@ -46,6 +46,8 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
   document.title = t('title');
   $('btn-lang').textContent = t('langBtn');
+  $('btn-mic').textContent = '🎤';
+  $('btn-mic').setAttribute('aria-label', t('mic'));
   $('btn-mute').textContent = isMuted() ? '🔇' : '🔊';
   $('btn-mute').setAttribute('aria-label', isMuted() ? t('unmute') : t('mute'));
   for (const o of $('f-time').options) o.textContent = `${o.value}${t('sec')}`;
@@ -75,9 +77,13 @@ function avatar(name, i) {
 }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+const offline = () => st.mode === 'single' || st.mode === 'hotseat';
+// Who is acting on this screen: online it is this player; on a shared device it is whoever's turn it is.
+const youId = (v) => (st.mode === 'hotseat' ? (st.transport.isHuman(v.round?.turnId) ? v.round.turnId : null) : st.you);
+
 function render(v) {
   if (v.phase === 'lobby') {
-    if (st.mode === 'single') return; // solo starts immediately; never show the lobby
+    if (offline()) return; // offline games start immediately; never show the lobby
     renderLobby(v);
     if (currentScreen() !== 'lobby') show('lobby');
   } else {
@@ -103,9 +109,10 @@ function renderGame(v) {
   const lang = v.settings.lang;
   buildKeys(lang);
   const r = v.round;
-  const me = v.players.find((p) => p.id === st.you);
+  const you = youId(v);
+  const me = v.players.find((p) => p.id === you);
   const aliveCount = v.players.filter((p) => p.alive).length;
-  const myTurn = v.phase === 'round' && r.turnId === st.you && !r.vote && !!me?.alive;
+  const myTurn = v.phase === 'round' && r.turnId === you && !r.vote && !!me?.alive;
 
   $('players').innerHTML = v.players.map((p, i) =>
     `<div class="player${p.id === r.turnId ? ' turn' : ''}${p.alive ? '' : ' out'}">${avatar(p.name, i)}<div class="pinfo"><div class="pname">${esc(p.name)}</div><div class="pscore">★ ${p.score}</div></div></div>`).join('');
@@ -115,10 +122,11 @@ function renderGame(v) {
   $('cat-name').textContent = v.category.name;
 
   const whose = $('whose');
-  whose.textContent = v.phase !== 'round' ? '' : myTurn ? t('yourTurn') : t('turnOf', nameOf(r.turnId));
+  whose.textContent = v.phase !== 'round' ? '' : myTurn && st.mode !== 'hotseat' ? t('yourTurn') : t('turnOf', nameOf(r.turnId));
   whose.classList.toggle('mine', myTurn);
 
-  const canObject = v.phase === 'round' && !!r.pending && r.pending.playerId !== st.you && !!me?.alive && !r.vote && aliveCount >= 3;
+  const canObject = v.phase === 'round' && !!r.pending && !r.vote && aliveCount >= 3 &&
+    (st.mode === 'hotseat' ? st.transport.objectorId(v) !== null : r.pending.playerId !== you && !!me?.alive);
   $('bubble').hidden = !r.pending;
   if (r.pending) $('bubble-text').innerHTML = `${esc(r.pending.word)} <span class="who">${esc(nameOf(r.pending.playerId))}</span>`;
   $('btn-object').hidden = !canObject;
@@ -128,9 +136,10 @@ function renderGame(v) {
 
   $('word').disabled = !myTurn;
   $('btn-submit').disabled = !myTurn;
-  if (myTurn && !st.wasMyTurn) { $('word').focus({ preventScroll: true }); }
-  st.wasMyTurn = myTurn;
-  if (!myTurn) $('hint').textContent = '';
+  $('btn-mic').disabled = !myTurn;
+  if (myTurn && st.wasMyTurn !== r.turnId) { $('word').focus({ preventScroll: true }); }
+  st.wasMyTurn = myTurn ? r.turnId : false;
+  if (!myTurn) { $('hint').textContent = ''; recognition?.abort(); }
 
   renderVote(v, me);
   renderBetween(v);
@@ -141,9 +150,10 @@ function renderVote(v, me) {
   $('vote').hidden = !vote;
   if (!vote) return;
   $('vote-title').textContent = t('voteTitle', vote.word);
-  const eligible = !!me?.alive && st.you !== vote.targetId && !(st.you in vote.votes);
+  const voter = st.mode === 'hotseat' ? st.transport.voterId(v) : st.you;
+  const eligible = st.mode === 'hotseat' ? voter !== null : !!me?.alive && st.you !== vote.targetId && !(st.you in vote.votes);
   $('vote-buttons').hidden = !eligible;
-  $('vote-state').textContent = eligible ? '' : t('voted');
+  $('vote-state').textContent = !eligible ? t('voted') : st.mode === 'hotseat' ? t('voterTurn', nameOf(voter)) : '';
 }
 
 function renderBetween(v) {
@@ -166,7 +176,7 @@ function renderBetween(v) {
   $('between-rank').innerHTML = sorted.map((p) =>
     `<li class="${v.phase === 'between' && roundWinners.includes(p.id) ? 'win' : ''}">${avatar(p.name, v.players.findIndex((x) => x.id === p.id))}<span>${esc(p.name)}</span><span class="pts">★ ${p.score}</span></li>`).join('');
   const done = v.phase === 'done';
-  const canRestart = st.mode === 'single' || v.host === st.you;
+  const canRestart = offline() || v.host === st.you;
   $('between-next').hidden = done;
   $('between-actions').hidden = !done;
   $('end-again').hidden = !canRestart;
@@ -184,7 +194,7 @@ function handleEvent(v) {
     else if (e.type === 'vote_start') play('object');
     else if (e.type === 'vote_result') { play(e.result === 'upheld' ? 'ok' : 'fail'); toast(e.result === 'upheld' ? t('voteUpheld') : t('voteRejected')); }
   }
-  if ((v.phase === 'between' || v.phase === 'done') && st.prevPhase === 'round' && v.round.winners?.includes(st.you)) play('win');
+  if ((v.phase === 'between' || v.phase === 'done') && st.prevPhase === 'round' && (st.mode === 'hotseat' ? v.round.winners?.length : v.round.winners?.includes(st.you))) play('win');
   st.prevPhase = v.phase;
 }
 
@@ -234,7 +244,13 @@ async function loadLocalData(lang) {
 function setupLabels() {
   const m = st.setupMode;
   $('setup-title').textContent = t(m === 'single' ? 'single' : m);
-  $('setup-go').textContent = t(m === 'single' ? 'singleGo' : m === 'create' ? 'createGo' : 'joinGo');
+  $('setup-go').textContent = t(m === 'single' || m === 'hotseat' ? 'singleGo' : m === 'create' ? 'createGo' : 'joinGo');
+  $('name-label').textContent = m === 'hotseat' ? `${t('name')} 1` : t('name');
+}
+function syncHumans() {
+  const n = +$('f-humans').value;
+  $('row-n3').hidden = n < 3;
+  $('row-n4').hidden = n < 4;
 }
 function openSetup(mode, code = '') {
   st.setupMode = mode;
@@ -246,6 +262,8 @@ function openSetup(mode, code = '') {
   $('row-max').hidden = mode !== 'create';
   $('row-time').hidden = mode === 'join';
   $('row-rounds').hidden = mode === 'join';
+  for (const id of ['row-humans', 'row-names', 'row-ai']) $(id).hidden = mode !== 'hotseat';
+  syncHumans();
   $('setup-msg').textContent = '';
   show('setup');
   $('f-name').focus();
@@ -261,14 +279,21 @@ $('setup-form').addEventListener('submit', async (e) => {
   const opts = { name, lang, maxPlayers: +$('f-max').value, timeLimitSec: +$('f-time').value, rounds: +$('f-rounds').value };
   $('setup-msg').textContent = '';
   if (st.transport) endSession2();
-  if (st.setupMode === 'single') {
+  if (st.setupMode === 'single' || st.setupMode === 'hotseat') {
+    const hot = st.setupMode === 'hotseat';
+    const n = hot ? +$('f-humans').value : 1;
+    const ai = hot ? $('f-ai').checked : true;
+    const names = [name, ...[2, 3, 4].slice(0, n - 1).map((i) => $(`f-n${i}`).value.trim() || t('player', i))];
+    if (ai && n > 3) { $('setup-msg').textContent = t('aiMax'); return; }
+    const lower = names.map((x) => x.toLowerCase());
+    if (new Set(lower).size < names.length || (ai && lower.includes('ai'))) { $('setup-msg').textContent = t('dupNames'); return; }
     $('setup-go').disabled = true;
     $('setup-msg').textContent = t('loading');
     try {
       const data = await loadLocalData(lang);
-      st.mode = 'single';
-      st.transport = createLocal(data, onMessage);
-      st.transport.send({ t: 'create', ...opts, maxPlayers: 2 });
+      st.mode = hot ? 'hotseat' : 'single';
+      st.transport = createLocal(data, onMessage, { extra: names.slice(1), ai });
+      st.transport.send({ t: 'create', ...opts, maxPlayers: names.length + (ai ? 1 : 0) });
       $('setup-msg').textContent = '';
     } catch {
       $('setup-msg').textContent = t('err_invalid');
@@ -287,7 +312,7 @@ function endSession2() { st.transport?.close(); st.transport = null; }
 /* ---------- game input ---------- */
 function myTurnNow() {
   const v = st.view;
-  return !!v && v.phase === 'round' && v.round.turnId === st.you && !v.round.vote;
+  return !!v && v.phase === 'round' && v.round.turnId === youId(v) && !v.round.vote;
 }
 function setHint(text) { $('hint').textContent = text; }
 
@@ -322,6 +347,36 @@ function syncLit() {
     setHint(letter && v.round.usedLetters.includes(letter) ? t('hintUsed') : word && v.round.usedWords.includes(word) ? t('hintDup') : '');
   }
 }
+
+/* ---------- voice input (browser speech recognition) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+function heardWord(alts, v) {
+  const lang = v.settings.lang;
+  const words = alts.map((a) => normalizeWord(lang === 'ko' ? a.replace(/\s+/g, '') : a.trim().split(/\s+/)[0], lang)).filter(Boolean);
+  const fresh = words.find((w) => { const l = initialOf(w, lang); return l && !v.round.usedLetters.includes(l) && !v.round.usedWords.includes(w); });
+  return fresh ?? words[0] ?? alts[0] ?? '';
+}
+$('btn-mic').addEventListener('click', () => {
+  if (recognition) return recognition.stop();
+  if (!myTurnNow()) return;
+  unlock();
+  const rec = new SR();
+  recognition = rec;
+  rec.lang = getLang() === 'ko' ? 'ko-KR' : 'en-US';
+  rec.maxAlternatives = 5;
+  rec.onresult = (e) => {
+    $('word').value = heardWord([...e.results[0]].map((a) => a.transcript), st.view);
+    syncLit();
+    $('word').focus({ preventScroll: true });
+  };
+  rec.onerror = (e) => { if (e.error !== 'aborted') setHint(t(e.error === 'not-allowed' ? 'micDenied' : 'micFail')); };
+  rec.onend = () => { if (recognition === rec) recognition = null; $('btn-mic').classList.remove('on'); $('btn-mic').setAttribute('aria-label', t('mic')); };
+  try { rec.start(); } catch { recognition = null; return; }
+  $('btn-mic').classList.add('on');
+  $('btn-mic').setAttribute('aria-label', t('micOff'));
+  setHint('');
+});
 
 const wordInput = $('word');
 wordInput.addEventListener('input', syncLit);
@@ -408,6 +463,9 @@ function frame() {
 
 /* ---------- boot ---------- */
 $('go-single').addEventListener('click', () => { unlock(); openSetup('single'); });
+$('go-hotseat').addEventListener('click', () => { unlock(); openSetup('hotseat'); });
+$('f-humans').addEventListener('change', syncHumans);
+$('btn-mic').hidden = !SR;
 $('go-create').addEventListener('click', () => { unlock(); openSetup('create'); });
 $('go-join').addEventListener('click', () => { unlock(); openSetup('join'); });
 $('setup-back').addEventListener('click', () => show('home'));

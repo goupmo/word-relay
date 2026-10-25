@@ -29,6 +29,7 @@
       <div class="hero-keys" aria-hidden="true" id="hero-keys"></div>
       <div class="stack">
         <button id="go-single" class="btn primary" type="button" data-i18n="single"></button>
+        <button id="go-hotseat" class="btn" type="button" data-i18n="hotseat"></button>
         <button id="go-create" class="btn" type="button" data-i18n="create"></button>
         <button id="go-join" class="btn" type="button" data-i18n="join"></button>
       </div>
@@ -40,7 +41,15 @@
     <section id="s-setup" class="screen" data-screen hidden>
       <form id="setup-form" class="card" autocomplete="off">
         <h2 id="setup-title"></h2>
-        <label class="field"><span data-i18n="name"></span><input id="f-name" maxlength="12" required data-i18n-ph="namePh"></label>
+        <label class="field" id="row-name"><span id="name-label" data-i18n="name"></span><input id="f-name" maxlength="12" required data-i18n-ph="namePh"></label>
+        <label class="field" id="row-humans"><span data-i18n="humans"></span>
+          <select id="f-humans"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+        <div id="row-names">
+          <label class="field"><span data-i18n="name2"></span><input id="f-n2" maxlength="12" data-i18n-ph="namePh"></label>
+          <label class="field" id="row-n3"><span data-i18n="name3"></span><input id="f-n3" maxlength="12" data-i18n-ph="namePh"></label>
+          <label class="field" id="row-n4"><span data-i18n="name4"></span><input id="f-n4" maxlength="12" data-i18n-ph="namePh"></label>
+        </div>
+        <label class="check" id="row-ai"><input type="checkbox" id="f-ai"><span data-i18n="withAi"></span></label>
         <label class="field" id="row-code"><span data-i18n="code"></span><input id="f-code" maxlength="5" autocapitalize="characters" spellcheck="false"></label>
         <label class="field" id="row-max"><span data-i18n="maxPlayers"></span>
           <select id="f-max"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></label>
@@ -91,6 +100,7 @@
       </div>
       <div class="keys" id="keys" aria-hidden="true"></div>
       <form id="entry" class="entry" autocomplete="off">
+        <button id="btn-mic" class="btn mic" type="button" hidden></button>
         <input id="word" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" data-i18n-ph="wordPh">
         <button id="btn-submit" class="btn primary" type="submit" data-i18n="submit"></button>
       </form>
