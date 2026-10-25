@@ -138,7 +138,9 @@ function renderGame(v) {
   $('word').disabled = !myTurn;
   $('btn-submit').disabled = !myTurn;
   if (myTurn && st.wasMyTurn !== r.turnId && !micOn) { $('word').focus({ preventScroll: true }); }
+  if (st.wasMyTurn !== (myTurn ? r.turnId : false) || v.phase !== 'round') cands = []; // new turn: forget old candidates
   st.wasMyTurn = myTurn ? r.turnId : false;
+  renderCands();
   if (!myTurn) $('hint').textContent = '';
 
   renderVote(v, me);
@@ -335,6 +337,7 @@ function submitWord() {
   play('tap');
   st.transport.send({ t: 'submit', word });
   $('word').value = '';
+  clearCandidates();
   syncLit();
 }
 
@@ -353,11 +356,39 @@ function syncLit() {
 /* ---------- voice input (browser speech recognition) ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
-function heardWord(alts, v) {
-  const lang = v.settings.lang;
-  const words = alts.map((a) => normalizeWord(lang === 'ko' ? a.replace(/\s+/g, '') : a.trim().split(/\s+/)[0], lang)).filter(Boolean);
-  const fresh = words.find((w) => { const l = initialOf(w, lang); return l && !v.round.usedLetters.includes(l) && !v.round.usedWords.includes(w); });
-  return fresh ?? words[0] ?? alts[0] ?? '';
+// What the speech engine heard becomes tappable candidates; nothing is submitted until one is tapped.
+let cands = [];
+function addCandidates(alts, lang) {
+  const found = [];
+  for (const a of alts) {
+    const tokens = a.trim().split(/\s+/);
+    for (const s of lang === 'ko' ? [tokens.join(''), ...tokens] : tokens) {
+      const w = normalizeWord(s, lang);
+      if (w && !found.includes(w)) found.push(w);
+    }
+  }
+  cands = [...found, ...cands.filter((w) => !found.includes(w))].slice(0, 8);
+}
+function renderCands() {
+  const v = st.view;
+  const box = $('cands');
+  box.hidden = !cands.length || !v?.round;
+  if (box.hidden) return;
+  box.innerHTML = cands.map((w) => {
+    const l = initialOf(w, v.settings.lang);
+    const bad = !l || v.round.usedLetters.includes(l) || v.round.usedWords.includes(w);
+    return `<button type="button" class="cand${bad ? ' bad' : ''}" data-w="${esc(w)}"${bad ? ' disabled' : ''}>${esc(w)}</button>`;
+  }).join('');
+}
+$('cands').addEventListener('click', (e) => {
+  const b = e.target.closest('.cand');
+  if (!b) return;
+  $('word').value = b.dataset.w;
+  submitWord();
+});
+function clearCandidates() {
+  cands = [];
+  renderCands();
 }
 // Stays on until the player turns it off; the browser ends a session after silence, so it is restarted.
 let micOn = false;
@@ -383,9 +414,9 @@ function micListen() {
   rec.onresult = (e) => {
     const res = e.results[e.results.length - 1];
     if (!res.isFinal || !myTurnNow()) return; // words heard on someone else's turn are ignored
-    $('word').value = heardWord([...res].map((a) => a.transcript), st.view);
-    syncLit();
-    submitWord();
+    addCandidates([...res].map((a) => a.transcript), st.view.settings.lang);
+    renderCands();
+    setHint(cands.length ? t('micPick') : t('micFail'));
   };
   rec.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micStop(); setHint(t('micDenied')); }
