@@ -417,34 +417,53 @@ function micUi() {
 }
 function micStop() {
   micOn = false;
+  clearTimeout(micTimer);
   recognition?.abort();
   micUi();
 }
+// The engine ends a session after a pause, on errors, and when the tab is hidden. Each of those just
+// means "start again": only a refused permission, or restarts that keep failing, turns the mic off.
+let micTimer = null;
+let micFails = 0;
+function micRestart() {
+  clearTimeout(micTimer);
+  if (!micOn) return;
+  if (micFails > 8) { micStop(); setHint(t('micFail')); return; }
+  micTimer = setTimeout(micListen, micFails ? Math.min(2000, 200 * 2 ** micFails) : 0); // right away the first time: no gap in listening
+}
 function micListen() {
-  if (!micOn || recognition) return;
+  if (!micOn || recognition || document.hidden) return;
   const rec = new SR();
   recognition = rec;
   rec.lang = getLang() === 'ko' ? 'ko-KR' : 'en-US';
   rec.continuous = true;
+  rec.interimResults = true;
   rec.maxAlternatives = 5;
+  rec.onaudiostart = () => { micFails = 0; };
   rec.onresult = (e) => {
-    const res = e.results[e.results.length - 1];
-    if (!res.isFinal || !myTurnNow()) return; // words heard on someone else's turn are ignored
-    addCandidates([...res].map((a) => a.transcript), st.view.settings.lang);
-    renderCands();
-    setHint(cands.length ? t('micPick') : t('micFail'));
+    micFails = 0;
+    for (let i = e.resultIndex; i < e.results.length; i++) { // several results can arrive in one event
+      const res = e.results[i];
+      if (!myTurnNow()) continue; // words heard on someone else's turn are ignored
+      if (!res.isFinal) { setHint(`🎤 ${res[0].transcript}`); continue; } // live preview of what it is hearing
+      addCandidates([...res].map((a) => a.transcript), st.view.settings.lang);
+      renderCands();
+      setHint(cands.length ? t('micPick') : t('micFail'));
+    }
   };
   rec.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micStop(); setHint(t('micDenied')); }
-    else if (e.error === 'network' || e.error === 'audio-capture') { micStop(); setHint(t('micFail')); }
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') micFails++; // network, audio-capture...: onend retries
   };
-  rec.onend = () => { if (recognition === rec) recognition = null; if (micOn) setTimeout(micListen, 300); };
-  try { rec.start(); } catch { recognition = null; micStop(); }
+  rec.onend = () => { if (recognition === rec) recognition = null; micRestart(); };
+  try { rec.start(); } catch { recognition = null; micFails++; micRestart(); }
 }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && micOn && !recognition) { micFails = 0; micRestart(); } });
 $('btn-mic').addEventListener('click', () => {
   if (micOn) return micStop();
   unlock();
   micOn = true;
+  micFails = 0;
   micUi();
   setHint('');
   micListen();
@@ -545,6 +564,23 @@ $('btn-brand').addEventListener('click', () => (st.transport ? leaveRoom() : sho
 $('btn-lang').addEventListener('click', () => { setLang(getLang() === 'ko' ? 'en' : 'ko'); applyI18n(); });
 $('btn-mute').addEventListener('click', () => { unlock(); setMuted(!isMuted()); applyI18n(); });
 document.addEventListener('pointerdown', unlock, { once: true });
+
+/* ---------- keep the board visible when the on-screen keyboard is up ---------- */
+// Chrome resizes the page for the keyboard (interactive-widget in the viewport meta); Safari and older
+// browsers only shrink the visual viewport, so lift the entry bar by the covered amount.
+// A short viewport switches to the compact layout: smaller timer, letters right beside it.
+const vv = window.visualViewport;
+function fitViewport() {
+  const h = vv ? vv.height : window.innerHeight;
+  const covered = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+  document.documentElement.style.setProperty('--kb', `${Math.round(covered)}px`);
+  document.body.classList.toggle('compact', h < 600);
+  document.body.classList.toggle('tiny', h < 440); // very short: the logo row goes too
+}
+vv?.addEventListener('resize', fitViewport);
+vv?.addEventListener('scroll', fitViewport);
+window.addEventListener('resize', fitViewport);
+fitViewport();
 
 /* ---------- install as an app (Chrome) ---------- */
 let installEvent = null;

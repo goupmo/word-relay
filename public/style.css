@@ -69,7 +69,7 @@ button, input, select { font: inherit; color: inherit; }
 .field input::placeholder { color: #7d86b5; }
 .check { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; font-size: 16px; cursor: pointer; }
 .check input { width: 24px; height: 24px; accent-color: var(--grape); }
-.cands { position: sticky; bottom: calc(100px + env(safe-area-inset-bottom)); z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 0 12px; padding: 4px 0 8px; }
+.cands { position: sticky; bottom: calc(100px + env(safe-area-inset-bottom) + var(--kb, 0px)); z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 0 12px; padding: 4px 0 8px; }
 .cand { font: 26px var(--display); min-height: 58px; padding: 6px 22px; border: var(--bd); border-radius: 16px; cursor: pointer; background: var(--sun); color: var(--ink); box-shadow: var(--pop); transition: transform .08s, box-shadow .08s; }
 .cand:nth-child(3n+2) { background: var(--mint); }
 .cand:nth-child(3n) { background: var(--pink); }
@@ -135,7 +135,7 @@ button, input, select { font: inherit; color: inherit; }
 .key.used { transform: translateY(5px); background: #d5d9ea; color: #8089b8; border-color: #8f98c4; box-shadow: none; text-decoration: line-through; text-decoration-thickness: 3px; }
 .key.lit { --kc: var(--sun); transform: translateY(-5px) scale(1.1) rotate(-3deg); box-shadow: 0 9px 0 var(--ink); }
 
-.entry { position: sticky; bottom: max(10px, env(safe-area-inset-bottom)); display: flex; gap: 10px; padding: 10px; background: var(--paper); border: var(--bd); border-radius: 24px; box-shadow: 0 6px 0 var(--ink); }
+.entry { position: sticky; bottom: calc(max(10px, env(safe-area-inset-bottom)) + var(--kb, 0px)); display: flex; gap: 10px; padding: 10px; background: var(--paper); border: var(--bd); border-radius: 24px; box-shadow: 0 6px 0 var(--ink); }
 .entry input { flex: 1; min-width: 0; background: var(--soft); color: var(--ink); border: var(--bd); border-radius: 16px; padding: 0 16px; font-size: 22px; min-height: 54px; }
 .entry input::placeholder { color: #7d86b5; }
 .entry input:disabled { opacity: .5; }
@@ -153,7 +153,7 @@ button, input, select { font: inherit; color: inherit; }
 .rank .pts { margin-left: auto; font: 21px var(--display); color: var(--grape-d); }
 .rank li.win .pts { color: var(--ink); }
 
-#toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 30; max-width: min(92vw, 420px); background: var(--paper); border: var(--bd); box-shadow: var(--pop); border-radius: 16px; padding: 10px 16px; font-size: 16px; text-align: center; transition: opacity .2s, transform .2s; }
+#toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom) + var(--kb, 0px)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 30; max-width: min(92vw, 420px); background: var(--paper); border: var(--bd); box-shadow: var(--pop); border-radius: 16px; padding: 10px 16px; font-size: 16px; text-align: center; transition: opacity .2s, transform .2s; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast.bad { background: #fff3c4; }
 
@@ -164,6 +164,49 @@ button, input, select { font: inherit; color: inherit; }
 .ad-slot { margin: 18px auto 0; min-height: 0; display: flex; justify-content: center; }
 .ad-slot:empty { display: none; }
 .ad-slot[data-mounted] { min-height: 100px; } /* reserve the banner height so the page does not jump */
+
+/* Short screen (typically the keyboard is up): timer small, category and letters stay right beside it. */
+.compact .top { padding: 6px 0; }
+.compact .brand { font-size: 17px; }
+.compact .brand img { width: 30px; height: 30px; }
+.compact .chip { min-height: 34px; padding: 0 12px; }
+.compact .players { gap: 6px; }
+.compact .player { padding: 3px 6px; box-shadow: 0 2px 0 var(--ink); }
+.compact .player.turn { transform: none; box-shadow: 0 3px 0 var(--ink); }
+.compact .avatar { width: 28px; height: 28px; font-size: 14px; }
+.compact .stage { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; text-align: left; padding: 8px 0 2px; }
+.compact .stage > * { grid-column: 2; }
+.compact .round-no { display: none; }
+.compact .stage .ring { grid-column: 1; grid-row: 1 / span 3; width: 96px; height: 96px; margin: 0; }
+.compact .ring::before { inset: 9px; box-shadow: 0 3px 0 var(--ink); }
+.compact .ring-num { font-size: 36px; }
+.compact .cat-name { justify-self: start; font-size: 26px; margin: 0 0 4px; padding: 0 16px 3px; border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
+.compact .whose { font-size: 18px; margin: 0; }
+.compact .bubble { justify-self: start; margin-top: 4px; font-size: 17px; padding: 3px 6px 3px 12px; }
+.compact .keys { gap: 6px; margin: 8px 2px 10px; }
+.compact .key { border-radius: 10px; border-width: 2px; box-shadow: 0 3px 0 var(--ink); font-size: 20px; }
+.compact .key.used { transform: translateY(3px); }
+.compact .key.lit { transform: translateY(-3px) scale(1.08); box-shadow: 0 6px 0 var(--ink); }
+.compact .hint { margin: 4px; min-height: 1.2em; }
+.compact .entry { padding: 6px; border-radius: 18px; }
+.compact .entry input { min-height: 46px; font-size: 20px; }
+.compact .cands { bottom: calc(66px + env(safe-area-inset-bottom) + var(--kb, 0px)); }
+.compact #toast { bottom: calc(70px + env(safe-area-inset-bottom) + var(--kb, 0px)); }
+
+.tiny .top { display: none; }
+.tiny .players { margin-top: 6px; }
+.tiny .stage { padding: 4px 0 0; }
+.tiny .stage .ring { width: 84px; height: 84px; }
+.tiny .ring::before { inset: 8px; }
+.tiny .ring-num { font-size: 30px; }
+.tiny .cat-name { font-size: 22px; margin-bottom: 2px; }
+.tiny .whose { font-size: 16px; }
+.tiny .bubble { margin-top: 2px; font-size: 15px; }
+.tiny .keys { gap: 5px; margin: 6px 2px 8px; }
+.tiny .key { font-size: 18px; }
+.tiny .hint { min-height: 0; margin: 2px; }
+.tiny .entry input { min-height: 42px; }
+.tiny .mic, .tiny .entry .btn { min-height: 44px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
