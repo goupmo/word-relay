@@ -8,10 +8,10 @@ const FOLD = { 'ㄲ': 'ㄱ', 'ㄸ': 'ㄷ', 'ㅃ': 'ㅂ', 'ㅆ': 'ㅅ', 'ㅉ': '�
 export function normalizeWord(raw, lang) {
   if (typeof raw !== 'string') return null;
   const s = raw.normalize('NFC').trim();
-  if (lang === 'ko') return /^[가-힣]{2,}$/.test(s) ? s : null;
+  if (lang === 'ko') return /^[가-힣]+$/.test(s) ? s : null;
   if (lang === 'en') {
     const l = s.toLowerCase();
-    return /^[a-z]{2,}$/.test(l) ? l : null;
+    return /^[a-z]+$/.test(l) ? l : null;
   }
   return null;
 }

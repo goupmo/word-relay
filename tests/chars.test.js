@@ -13,7 +13,13 @@ test('normalizeWord rejects jamo-only, spaces, digits, emoji', () => {
   assert.equal(normalizeWord('가 나', 'ko'), null);
   assert.equal(normalizeWord('a1', 'en'), null);
   assert.equal(normalizeWord('😀', 'ko'), null);
-  assert.equal(normalizeWord('가', 'ko'), null); // too short
+  assert.equal(normalizeWord('', 'ko'), null);
+});
+
+test('normalizeWord allows one-letter words', () => {
+  assert.equal(normalizeWord('곰', 'ko'), '곰');
+  assert.equal(normalizeWord('I', 'en'), 'i');
+  assert.equal(initialOf('곰', 'ko'), 'ㄱ');
 });
 
 test('normalizeWord trims and lowercases English', () => {

@@ -8,6 +8,7 @@ import { KO_LETTERS, EN_LETTERS, normalizeWord, initialOf } from '../shared/char
 
 const $ = (id) => document.getElementById(id);
 const RING = 326.73;
+const DICT_VERSION = 2; // 2: one-letter words allowed
 const COLORS = ['#ffc83d', '#5cc8ff', '#ff8fab', '#7ee8a5'];
 const lettersOf = (lang) => (lang === 'ko' ? KO_LETTERS : EN_LETTERS);
 const store = {
@@ -136,10 +137,9 @@ function renderGame(v) {
 
   $('word').disabled = !myTurn;
   $('btn-submit').disabled = !myTurn;
-  $('btn-mic').disabled = !myTurn;
   if (myTurn && st.wasMyTurn !== r.turnId) { $('word').focus({ preventScroll: true }); }
   st.wasMyTurn = myTurn ? r.turnId : false;
-  if (!myTurn) { $('hint').textContent = ''; recognition?.abort(); }
+  if (!myTurn) $('hint').textContent = '';
 
   renderVote(v, me);
   renderBetween(v);
@@ -216,6 +216,7 @@ function onMessage(msg) {
 }
 
 function endSession() {
+  micStop();
   st.transport?.close();
   Object.assign(st, { transport: null, view: null, mode: null, you: null, code: null, wasMyTurn: false });
   $('vote').hidden = true;
@@ -233,7 +234,8 @@ async function loadLocalData(lang) {
     st.localData = { categories, dicts: { ko: { has: () => false }, en: { has: () => false } } };
   }
   if (!st.localData.loaded?.[lang]) {
-    const words = await (await fetch(`/data/dict-${lang}.json`)).json();
+    // Bump DICT_VERSION whenever the word lists change: the files are cached for a day.
+    const words = await (await fetch(`/data/dict-${lang}.json?v=${DICT_VERSION}`)).json();
     st.localData.dicts[lang] = new Set(words);
     (st.localData.loaded ??= {})[lang] = true;
   }
@@ -357,25 +359,45 @@ function heardWord(alts, v) {
   const fresh = words.find((w) => { const l = initialOf(w, lang); return l && !v.round.usedLetters.includes(l) && !v.round.usedWords.includes(w); });
   return fresh ?? words[0] ?? alts[0] ?? '';
 }
-$('btn-mic').addEventListener('click', () => {
-  if (recognition) return recognition.stop();
-  if (!myTurnNow()) return;
-  unlock();
+// Stays on until the player turns it off; the browser ends a session after silence, so it is restarted.
+let micOn = false;
+function micUi() {
+  $('btn-mic').classList.toggle('on', micOn);
+  $('btn-mic').setAttribute('aria-label', t(micOn ? 'micOff' : 'mic'));
+}
+function micStop() {
+  micOn = false;
+  recognition?.abort();
+  micUi();
+}
+function micListen() {
+  if (!micOn || recognition) return;
   const rec = new SR();
   recognition = rec;
   rec.lang = getLang() === 'ko' ? 'ko-KR' : 'en-US';
+  rec.continuous = true;
   rec.maxAlternatives = 5;
   rec.onresult = (e) => {
-    $('word').value = heardWord([...e.results[0]].map((a) => a.transcript), st.view);
+    const res = e.results[e.results.length - 1];
+    if (!res.isFinal || !myTurnNow()) return; // words heard on someone else's turn are ignored
+    $('word').value = heardWord([...res].map((a) => a.transcript), st.view);
     syncLit();
-    $('word').focus({ preventScroll: true });
+    submitWord();
   };
-  rec.onerror = (e) => { if (e.error !== 'aborted') setHint(t(e.error === 'not-allowed' ? 'micDenied' : 'micFail')); };
-  rec.onend = () => { if (recognition === rec) recognition = null; $('btn-mic').classList.remove('on'); $('btn-mic').setAttribute('aria-label', t('mic')); };
-  try { rec.start(); } catch { recognition = null; return; }
-  $('btn-mic').classList.add('on');
-  $('btn-mic').setAttribute('aria-label', t('micOff'));
+  rec.onerror = (e) => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micStop(); setHint(t('micDenied')); }
+    else if (e.error === 'network' || e.error === 'audio-capture') { micStop(); setHint(t('micFail')); }
+  };
+  rec.onend = () => { if (recognition === rec) recognition = null; if (micOn) setTimeout(micListen, 300); };
+  try { rec.start(); } catch { recognition = null; micStop(); }
+}
+$('btn-mic').addEventListener('click', () => {
+  if (micOn) return micStop();
+  unlock();
+  micOn = true;
+  micUi();
   setHint('');
+  micListen();
 });
 
 const wordInput = $('word');
