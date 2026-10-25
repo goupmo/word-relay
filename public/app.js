@@ -126,10 +126,11 @@ function renderGame(v) {
   whose.textContent = v.phase !== 'round' ? '' : myTurn && st.mode !== 'hotseat' ? t('yourTurn') : t('turnOf', nameOf(r.turnId));
   whose.classList.toggle('mine', myTurn);
 
-  const canObject = v.phase === 'round' && !!r.pending && !r.vote && aliveCount >= 3 &&
+  const canObject = v.phase === 'round' && !!r.pending && !r.vote && (aliveCount >= 3 || r.pending.unverified) &&
     (st.mode === 'hotseat' ? st.transport.objectorId(v) !== null : r.pending.playerId !== you && !!me?.alive);
   $('bubble').hidden = !r.pending;
-  if (r.pending) $('bubble-text').innerHTML = `${esc(r.pending.word)} <span class="who">${esc(nameOf(r.pending.playerId))}</span>`;
+  $('bubble').classList.toggle('warn', !!r.pending?.unverified);
+  if (r.pending) $('bubble-text').innerHTML = `${r.pending.unverified ? '⚠ ' : ''}${esc(r.pending.word)} <span class="who">${esc(nameOf(r.pending.playerId))}</span>`;
   $('btn-object').hidden = !canObject;
 
   for (const k of $('keys').children) k.classList.toggle('used', r.usedLetters.includes(k.dataset.l));
@@ -191,7 +192,7 @@ function handleEvent(v) {
   const e = v.event;
   if (e && e.seq > st.seenSeq) {
     st.seenSeq = e.seq;
-    if (e.type === 'word') play('ok');
+    if (e.type === 'word') { play('ok'); if (e.unverified) toast(t('warnUnverified', e.word), true); }
     else if (e.type === 'out') { play('fail'); toast(t(`out_${e.reason}`, nameOf(e.playerId)), true); }
     else if (e.type === 'vote_start') play('object');
     else if (e.type === 'vote_result') { play(e.result === 'upheld' ? 'ok' : 'fail'); toast(e.result === 'upheld' ? t('voteUpheld') : t('voteRejected')); }

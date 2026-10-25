@@ -103,6 +103,17 @@ test('a valid word advances the turn and reports an event', () => {
   assert.equal(room.event.word, '사자');
 });
 
+test('a word that is not in the dictionary is accepted with a warning flag', () => {
+  const { host, guests } = lobby(2);
+  host.send({ t: 'start' });
+  host.send({ t: 'submit', word: '가나다라' });
+  const room = guests[0].last('room');
+  assert.equal(room.event.type, 'word');
+  assert.equal(room.event.unverified, true);
+  assert.equal(room.round.pending.unverified, true);
+  assert.equal(room.players.every((p) => p.alive), true);
+});
+
 test('submit by the wrong player is ignored', () => {
   const { host, guests } = lobby(2);
   host.send({ t: 'start' });

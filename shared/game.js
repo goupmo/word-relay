@@ -58,7 +58,6 @@ export function submitWord(round, playerId, raw, dict, now) {
   let reason = null;
   if (round.usedLetters.includes(letter)) reason = 'letter_used';
   else if (round.usedWords.includes(word)) reason = 'duplicate';
-  else if (!dict.has(word)) reason = 'not_in_dict';
   if (reason) {
     eliminate(round, round.turn, now);
     return { ok: false, reason };
@@ -66,13 +65,15 @@ export function submitWord(round, playerId, raw, dict, now) {
 
   round.usedLetters.push(letter);
   round.usedWords.push(word);
-  round.pending = { playerId, word, letter };
+  // A word missing from the dictionary is not penalised: it is flagged and the players judge it by challenging.
+  const unverified = !dict.has(word);
+  round.pending = { playerId, word, letter, ...(unverified && { unverified }) };
   finishIfOver(round);
   if (!round.winners) {
     round.turn = nextAlive(round, round.turn);
     round.deadline = now + round.timeLimitMs;
   }
-  return { ok: true };
+  return unverified ? { ok: true, unverified } : { ok: true };
 }
 
 // A player left the game (disconnect). Same as being eliminated, but the turn only moves
@@ -100,8 +101,8 @@ export function startObjection(round, objectorId, now) {
   if (!round.pending) return { ok: false, reason: 'no_pending' };
   if (objectorId === round.pending.playerId) return { ok: false, reason: 'self' };
   if (!round.players.some((p) => p.alive && p.id === objectorId)) return { ok: false, reason: 'not_alive' };
-  // With two players the lone voter would always win, so the dictionary decides alone.
-  if (aliveIds(round).length < 3) return { ok: false, reason: 'too_few_players' };
+  // With two players left the opponent alone would decide, so only words the dictionary does not know can be challenged.
+  if (aliveIds(round).length < 3 && !round.pending.unverified) return { ok: false, reason: 'too_few_players' };
   round.vote = {
     objectorId,
     targetId: round.pending.playerId,

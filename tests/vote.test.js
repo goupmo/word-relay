@@ -68,6 +68,14 @@ test('two alive players cannot object', () => {
   assert.deepEqual(startObjection(r, 'b', 2500), { ok: false, reason: 'too_few_players' });
 });
 
+test('with two players left a flagged word can still be challenged, and the opponent decides', () => {
+  const r = mk(['a', 'b']);
+  assert.deepEqual(submitWord(r, 'a', '가나다라', dict, 2000), { ok: true, unverified: true });
+  assert.deepEqual(startObjection(r, 'b', 2500), { ok: true });
+  assert.equal(resolveVote(r, 2600), 'upheld');
+  assert.deepEqual(r.winners, ['b']);
+});
+
 test('submitter cannot object or vote; others cannot object twice', () => {
   const r = mk(['a', 'b', 'c']);
   submitWord(r, 'a', '사자', dict, 2000);

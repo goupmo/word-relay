@@ -5,7 +5,7 @@ import {
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
 const BETWEEN_MS = 5000;
-const OUT_REASONS = ['letter_used', 'duplicate', 'not_in_dict'];
+const OUT_REASONS = ['letter_used', 'duplicate'];
 const clamp = (n, lo, hi, dflt) => (Number.isFinite(+n) ? Math.min(hi, Math.max(lo, Math.round(+n))) : dflt);
 
 export function createRooms({ dicts, categories, now, rand }) {
@@ -42,7 +42,7 @@ export function createRooms({ dicts, categories, now, rand }) {
         deadline: r.deadline,
         usedLetters: r.usedLetters,
         usedWords: r.usedWords,
-        pending: r.pending && { playerId: r.pending.playerId, word: r.pending.word },
+        pending: r.pending && { playerId: r.pending.playerId, word: r.pending.word, unverified: !!r.pending.unverified },
         vote: r.vote && { objectorId: r.vote.objectorId, targetId: r.vote.targetId, word: r.vote.word, votes: r.vote.votes, deadline: r.vote.deadline },
         winners: r.winners,
       },
@@ -157,7 +157,7 @@ export function createRooms({ dicts, categories, now, rand }) {
     submit(id, msg, room) {
       if (room.phase !== 'round') return error(id, 'not_your_turn');
       const res = submitWord(room.round, id, msg.word, dicts[room.lang], now());
-      if (res.ok) setEvent(room, { type: 'word', playerId: id, word: room.round.pending?.word ?? room.round.usedWords.at(-1) });
+      if (res.ok) setEvent(room, { type: 'word', playerId: id, word: room.round.pending?.word ?? room.round.usedWords.at(-1), unverified: !!res.unverified });
       else if (OUT_REASONS.includes(res.reason)) setEvent(room, { type: 'out', playerId: id, reason: res.reason, word: String(msg.word).slice(0, 30) });
       else return error(id, res.reason); // not_your_turn / too_late / invalid: nothing changed
       settle(room);

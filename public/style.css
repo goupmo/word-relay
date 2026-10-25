@@ -105,6 +105,7 @@ button, input, select { font: inherit; color: inherit; }
 .whose { margin: 8px 0 0; font: 22px var(--display); min-height: 1.4em; }
 .whose.mine { color: var(--sun); }
 .bubble { display: inline-flex; align-items: center; gap: 10px; margin-top: 8px; background: var(--ink-2); border: 2px solid var(--line); border-radius: 999px; padding: 6px 8px 6px 16px; font: 20px var(--display); }
+.bubble.warn { border-color: var(--sun); }
 .bubble .who { font: 14px var(--body); color: var(--muted); }
 
 .keys { display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); gap: 9px; margin: 14px 2px 18px; }

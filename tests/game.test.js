@@ -33,10 +33,13 @@ test('duplicate word eliminates', () => {
   assert.deepEqual(alive(r), ['b', 'c']);
 });
 
-test('unknown word eliminates', () => {
+test('a word missing from the dictionary is accepted but flagged, nobody is eliminated', () => {
   const r = mk();
-  assert.deepEqual(submitWord(r, 'a', '가나다라', dict, 2000), { ok: false, reason: 'not_in_dict' });
-  assert.deepEqual(alive(r), ['b', 'c']);
+  assert.deepEqual(submitWord(r, 'a', '가나다라', dict, 2000), { ok: true, unverified: true });
+  assert.deepEqual(alive(r), ['a', 'b', 'c']);
+  assert.equal(r.players[r.turn].id, 'b');
+  assert.deepEqual(r.pending, { playerId: 'a', word: '가나다라', letter: 'ㄱ', unverified: true });
+  assert.deepEqual(submitWord(mk(), 'a', '사자', dict, 2000), { ok: true }); // dictionary words carry no flag
 });
 
 test('wrong player is ignored', () => {
@@ -74,7 +77,7 @@ test('tick eliminates only after the deadline', () => {
 test('last survivor wins', () => {
   const r = mk(['a', 'b']);
   submitWord(r, 'a', '사자', dict, 2000);
-  submitWord(r, 'b', '가나다라', dict, 3000);
+  submitWord(r, 'b', '사과', dict, 3000); // letter ㅅ is already used
   assert.deepEqual(r.winners, ['a']);
   assert.deepEqual(submitWord(r, 'a', '나비', dict, 4000), { ok: false, reason: 'not_your_turn' });
 });
