@@ -62,8 +62,9 @@ button, input, select { font: inherit; color: inherit; }
 
 .card { background: var(--paper); border: var(--bd); border-radius: 26px; padding: 22px 18px; margin-top: 8px; box-shadow: 0 7px 0 var(--ink); }
 .card h2 { font-size: 30px; margin-bottom: 14px; }
-.field { display: grid; gap: 6px; margin-bottom: 14px; font-size: 15px; color: var(--muted); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-bottom: 14px; font-size: 15px; color: var(--muted); }
 .field input, .field select {
+  width: 100%; min-width: 0;
   background: var(--soft); color: var(--ink); border: var(--bd); border-radius: 14px; padding: 10px 14px; font-size: 18px; min-height: 50px;
 }
 .field input::placeholder { color: #7d86b5; }
@@ -73,6 +74,8 @@ button, input, select { font: inherit; color: inherit; }
    Two rows at most: the newest come first and older ones are cut off. */
 .cands { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 8px 10px; max-height: 112px; overflow: hidden; margin: 4px 0 6px; padding: 0 0 6px; }
 .cand { font: 24px var(--display); min-height: 50px; padding: 2px 16px 4px; border: var(--bd); border-radius: 14px; cursor: pointer; background: var(--sun); color: var(--ink); box-shadow: 0 4px 0 var(--ink); transition: transform .08s, box-shadow .08s; }
+.mic-on .cands { min-height: 56px; }
+.cands:empty::before { content: attr(data-empty); align-self: center; color: var(--muted); font-size: 15px; }
 .cand:nth-child(3n+2) { background: var(--mint); }
 .cand:nth-child(3n) { background: var(--pink); }
 .cand:active { transform: translateY(5px); box-shadow: none; }
@@ -102,34 +105,33 @@ button, input, select { font: inherit; color: inherit; }
 .player.turn .pscore { color: var(--ink); }
 .player .pinfo { min-width: 0; }
 
-.stage { text-align: center; padding: 14px 0 6px; }
-.round-no { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
-.cat-name { display: inline-block; font-size: clamp(32px, 10vw, 50px); line-height: 1.15; margin: 0 0 12px; padding: 2px 26px 6px; background: var(--paper); border: var(--bd); border-radius: 24px; box-shadow: var(--pop); transform: rotate(-1.5deg); color: var(--ink); }
-.ring { position: relative; width: 150px; height: 150px; margin: 0 auto; }
-.ring::before { content: ''; position: absolute; inset: 14px; border-radius: 50%; background: var(--paper); border: var(--bd); box-shadow: 0 4px 0 var(--ink); }
-.ring svg { position: relative; width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 10; }
-.ring-bg { stroke: #ffffffcc; }
-.ring-fg { stroke: var(--grape); stroke-linecap: round; stroke-dasharray: 326.73; stroke-dashoffset: 0; }
-.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font: 54px var(--display); color: var(--ink); }
-.ring.low .ring-fg { stroke: var(--coral); }
-.ring.low .ring-num { color: var(--coral-d); animation: beat 1s ease-in-out infinite; }
-.ring.paused .ring-fg { stroke: var(--sky); }
-@keyframes beat { 50% { transform: scale(1.14); } }
-.whose { margin: 10px 0 0; font: 23px var(--display); min-height: 1.4em; color: var(--ink); }
-.whose.mine { color: var(--grape-d); }
-.bubble { display: inline-flex; align-items: center; gap: 10px; margin-top: 8px; background: var(--paper); border: var(--bd); border-radius: 999px; padding: 6px 8px 6px 18px; font: 21px var(--display); box-shadow: 0 4px 0 var(--ink); }
+.stage { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 14px; padding: 8px 0 0; }
+.round-no { flex-basis: 100%; margin: 0 0 2px; text-align: center; color: var(--muted); font-size: 14px; }
+.cat-name { display: inline-block; font-size: clamp(28px, 9vw, 44px); line-height: 1.15; margin: 0; padding: 2px 24px 5px; background: var(--paper); border: var(--bd); border-radius: 22px; box-shadow: var(--pop); transform: rotate(-1.5deg); color: var(--ink); }
+.bubble-row { display: flex; justify-content: center; align-items: center; min-height: 54px; padding-top: 6px; }
+.bubble { display: inline-flex; align-items: center; gap: 10px; background: var(--paper); border: var(--bd); border-radius: 999px; padding: 4px 8px 4px 18px; font: 21px var(--display); box-shadow: 0 4px 0 var(--ink); }
 .bubble.warn { background: #fff3c4; }
 .bubble .who { font: 14px var(--body); color: var(--muted); }
 
-/* The letter grid takes whatever height is left on the game screen (rows share it equally, capped at a
-   comfortable size), so a short screen makes the letters smaller instead of pushing something under another. */
-.keys { display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows, 2), minmax(0, 1fr)); gap: 9px; margin: 12px 2px 8px; flex: 1 1 0; min-height: 80px; max-height: calc(var(--rows, 2) * 62px + 16px); }
-.hero-keys .key { aspect-ratio: 1; }
+/* The dial fills all the height that is left. Letters sit on an ellipse around the timer: --k is the letter size,
+   --a each letter's angle. Size units (cqw/cqh) are relative to .dial, so the ring follows the space it is given. */
+.dial-wrap { container-type: size; display: grid; place-items: center; }
+.dial { position: relative; width: min(100cqw, 560px); height: 100cqh; container-type: size; --k: clamp(26px, min(15cqw, 16cqh), 62px); }
+.dial[data-lang="en"] { --k: clamp(15px, min(8.5cqw, 9.5cqh), 50px); }
+.keys { position: absolute; inset: 0; }
 .key {
   --kc: #fff; min-height: 0; display: grid; place-items: center; border-radius: 14px; background: var(--kc); color: var(--ink); border: var(--bd);
   font: clamp(20px, 6vw, 28px) var(--display); box-shadow: 0 5px 0 var(--ink);
   transition: transform .09s, box-shadow .09s, background .09s; user-select: none;
+}
+.hero-keys .key { aspect-ratio: 1; }
+.dial .key {
+  position: absolute; width: var(--k); height: var(--k); border-radius: calc(var(--k) * .26);
+  left: calc(50% + (50cqw - var(--k) / 2 - 6px) * sin(var(--a)));
+  top: calc(50% - (50cqh - var(--k) / 2 - 8px) * cos(var(--a)));
+  translate: -50% -50%;
+  font-family: var(--display); font-size: calc(var(--k) * .54);
+  border-width: clamp(2px, calc(var(--k) * .06), 3px); box-shadow: 0 clamp(2px, calc(var(--k) * .08), 5px) 0 var(--ink);
 }
 .key:nth-child(6n+1) { --kc: #ffe08a; }
 .key:nth-child(6n+2) { --kc: #b9f0dc; }
@@ -138,7 +140,24 @@ button, input, select { font: inherit; color: inherit; }
 .key:nth-child(6n+5) { --kc: #bfe6ff; }
 .key:nth-child(6n) { --kc: #fff; }
 .key.used { transform: translateY(5px); background: #d5d9ea; color: #8089b8; border-color: #8f98c4; box-shadow: none; text-decoration: line-through; text-decoration-thickness: 3px; }
+.dial .key.used { transform: translateY(calc(var(--k) * .08)); }
 .key.lit { --kc: var(--sun); transform: translateY(-5px) scale(1.1) rotate(-3deg); box-shadow: 0 9px 0 var(--ink); }
+.dial .key.lit { transform: scale(1.22); z-index: 2; box-shadow: 0 calc(var(--k) * .12) 0 var(--ink); }
+
+.dial-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; --rs: clamp(52px, min(100cqw - 2 * var(--k) - 30px, 100cqh - 2 * var(--k) - 30px), 240px); }
+.ring { position: relative; width: var(--rs); height: var(--rs); }
+.ring::before { content: ''; position: absolute; inset: 9%; border-radius: 50%; background: var(--paper); border: var(--bd); box-shadow: 0 4px 0 var(--ink); }
+.ring svg { position: relative; width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 10; }
+.ring-bg { stroke: #ffffffcc; }
+.ring-fg { stroke: var(--grape); stroke-linecap: round; stroke-dasharray: 326.73; stroke-dashoffset: 0; }
+.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: calc(var(--rs) * .36); color: var(--ink); }
+.ring.low .ring-fg { stroke: var(--coral); }
+.ring.low .ring-num { color: var(--coral-d); animation: beat 1s ease-in-out infinite; }
+.ring.paused .ring-fg { stroke: var(--sky); }
+@keyframes beat { 50% { transform: scale(1.14); } }
+.whose { margin: 0; font: 22px var(--display); line-height: 1.2; min-height: 1.2em; color: var(--ink); text-align: center; }
+.whose.mine { color: var(--grape-d); }
 
 .entry { margin-top: auto; display: flex; gap: 10px; padding: 10px; background: var(--paper); border: var(--bd); border-radius: 24px; box-shadow: 0 6px 0 var(--ink); }
 .entry input { flex: 1; min-width: 0; background: var(--soft); color: var(--ink); border: var(--bd); border-radius: 16px; padding: 0 16px; font-size: 22px; min-height: 54px; }
@@ -152,7 +171,7 @@ body.in-game #app { height: var(--vh, 100dvh); position: relative; top: var(--vt
 body.in-game main { flex: 1; min-height: 0; }
 body.in-game .game { height: 100%; display: flex; flex-direction: column; padding-bottom: 0; }
 body.in-game .game > * { flex: none; }
-body.in-game .game > .keys { flex: 1 1 0; }
+body.in-game .game > .dial-wrap { flex: 1 1 0; min-height: 0; }
 body.in-game .top { flex: none; }
 
 .overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: #232a5c8c; backdrop-filter: blur(3px); }
@@ -180,7 +199,7 @@ body.in-game .top { flex: none; }
 .ad-slot:empty { display: none; }
 .ad-slot[data-mounted] { min-height: 100px; } /* reserve the banner height so the page does not jump */
 
-/* Short screen (typically the keyboard is up): timer small, category and letters stay right beside it. */
+/* Short screen (typically the keyboard is up): the dial just gets smaller, the chrome around it slims down. */
 .compact .top { padding: 6px 0; }
 .compact .brand { font-size: 17px; }
 .compact .brand img { width: 30px; height: 30px; }
@@ -189,47 +208,35 @@ body.in-game .top { flex: none; }
 .compact .player { padding: 3px 6px; box-shadow: 0 2px 0 var(--ink); }
 .compact .player.turn { transform: none; box-shadow: 0 3px 0 var(--ink); }
 .compact .avatar { width: 28px; height: 28px; font-size: 14px; }
-.compact .stage { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; text-align: left; padding: 8px 0 2px; }
-.compact .stage > * { grid-column: 2; }
+.compact .stage { padding-top: 4px; }
 .compact .round-no { display: none; }
-.compact .stage .ring { grid-column: 1; grid-row: 1 / span 3; width: 96px; height: 96px; margin: 0; }
-.compact .ring::before { inset: 9px; box-shadow: 0 3px 0 var(--ink); }
-.compact .ring-num { font-size: 36px; }
-.compact .cat-name { justify-self: start; font-size: 26px; margin: 0 0 4px; padding: 0 16px 3px; border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
-.compact .whose { font-size: 18px; margin: 0; }
-.compact .bubble { justify-self: start; margin-top: 4px; font-size: 17px; padding: 3px 6px 3px 12px; }
-.compact .keys { gap: 6px; margin: 6px 2px 6px; }
-.compact .key { border-radius: 10px; border-width: 2px; box-shadow: 0 3px 0 var(--ink); font-size: 20px; }
-.compact .key.used { transform: translateY(3px); }
-.compact .key.lit { transform: translateY(-3px) scale(1.08); box-shadow: 0 6px 0 var(--ink); }
+.compact .cat-name { font-size: 28px; padding: 0 18px 3px; border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
+.compact .bubble-row { min-height: 46px; padding-top: 4px; }
+.compact .bubble { font-size: 18px; padding: 2px 6px 2px 14px; }
 .compact .hint { margin: 0 4px 4px; min-height: 1.2em; }
 .compact .entry { padding: 6px; border-radius: 18px; }
 .compact .entry input { min-height: 46px; font-size: 20px; }
 .compact .cands { max-height: 92px; margin: 2px 0 4px; padding-bottom: 4px; }
+.compact .mic-on .cands, .compact.mic-on .cands { min-height: 46px; }
 .compact .cand { font-size: 20px; min-height: 42px; padding: 0 12px 3px; box-shadow: 0 3px 0 var(--ink); }
 
 .tiny .top { display: none; }
 .tiny .players { margin-top: 6px; }
-.tiny .stage { padding: 4px 0 0; }
-.tiny .stage .ring { width: 84px; height: 84px; }
-.tiny .ring::before { inset: 8px; }
-.tiny .ring-num { font-size: 30px; }
-.tiny .cat-name { font-size: 22px; margin-bottom: 2px; }
-.tiny .whose { font-size: 16px; }
-.tiny .bubble { margin-top: 2px; font-size: 15px; }
-.tiny .keys { gap: 5px; margin: 6px 2px 8px; }
-.tiny .key { font-size: 18px; }
+.tiny .cat-name { font-size: 22px; padding: 0 14px 2px; }
+.tiny .bubble-row { min-height: 38px; padding-top: 2px; }
+.tiny .bubble { font-size: 15px; }
 .tiny .hint { min-height: 0; margin: 0 4px 2px; }
 .tiny .cands { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; max-height: 48px; }
+.tiny.mic-on .cands { min-height: 44px; }
 .tiny .cand { flex: none; min-height: 38px; font-size: 19px; }
 .tiny .entry input { min-height: 42px; }
 .tiny .mic, .tiny .entry .btn { min-height: 44px; }
+/* Keyboard-up height: smaller letters and timer so the ring never touches itself. */
+.tiny .dial { --k: clamp(15px, 14cqh, 22px); }
+.tiny .dial[data-lang="en"] { --k: 17px; }
+.tiny .dial-center { --rs: clamp(34px, min(100cqw - 2 * var(--k) - 30px, 100cqh - 2 * var(--k) - 26px), 220px); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .confetti { display: none; }
-}
-@media (min-width: 640px) {
-  .keys { gap: 12px; }
-  .ring { width: 170px; height: 170px; }
 }

@@ -95,14 +95,23 @@
       <div class="stage">
         <p class="round-no" id="round-no"></p>
         <h2 class="cat-name" id="cat-name"></h2>
-        <div class="ring" id="ring">
-          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"/></svg>
-          <div class="ring-num" id="ring-num" aria-live="off"></div>
-        </div>
         <p class="whose" id="whose"></p>
+      </div>
+      <div class="bubble-row">
         <div class="bubble" id="bubble" hidden><span id="bubble-text"></span><button id="btn-object" class="btn tiny danger" type="button" data-i18n="objectBtn" hidden></button></div>
       </div>
-      <div class="keys" id="keys" aria-hidden="true"></div>
+      <!-- The letters sit on a ring around the timer, and the ring fills whatever height is left. -->
+      <div class="dial-wrap">
+        <div class="dial" id="dial">
+          <div class="keys" id="keys" aria-hidden="true"></div>
+          <div class="dial-center">
+            <div class="ring" id="ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"/></svg>
+              <div class="ring-num" id="ring-num" aria-live="off"></div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="cands" id="cands" hidden></div>
       <p class="hint" id="hint" role="status"></p>
       <form id="entry" class="entry" autocomplete="off">

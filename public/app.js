@@ -69,9 +69,10 @@ function buildKeys(lang) {
   if (st.keysLang === lang) return;
   st.keysLang = lang;
   const letters = lettersOf(lang);
-  $('keys').style.setProperty('--cols', lang === 'ko' ? 7 : 8);
-  $('keys').style.setProperty('--rows', lang === 'ko' ? 2 : 3);
-  $('keys').innerHTML = letters.map((l) => `<span class="key" data-l="${l}">${lang === 'ko' ? l : l.toUpperCase()}</span>`).join('');
+  $('dial').dataset.lang = lang;
+  // Letters go round the timer, the first one at the top; --a is its angle on the ring.
+  $('keys').innerHTML = letters.map((l, i) =>
+    `<span class="key" data-l="${l}" style="--a:${((360 / letters.length) * i).toFixed(2)}deg">${lang === 'ko' ? l : l.toUpperCase()}</span>`).join('');
 }
 
 /* ---------- rendering ---------- */
@@ -390,8 +391,9 @@ function addCandidates(alts, lang) {
 function renderCands() {
   const v = st.view;
   const box = $('cands');
-  box.hidden = !cands.length || !v?.round;
+  box.hidden = !(cands.length || micOn) || !v?.round; // with the mic on, the spot is kept so the board does not jump
   if (box.hidden) return;
+  box.dataset.empty = t('micWait');
   box.innerHTML = cands.map((w) => {
     const l = initialOf(w, v.settings.lang);
     const bad = !l || v.round.usedLetters.includes(l) || v.round.usedWords.includes(w);
@@ -416,6 +418,8 @@ function micUi() {
   // While listening, the on-screen keyboard stays down; turn the mic off to type.
   $('word').inputMode = micOn ? 'none' : 'text';
   if (micOn) $('word').blur();
+  document.body.classList.toggle('mic-on', micOn);
+  renderCands();
 }
 function micStop() {
   micOn = false;
