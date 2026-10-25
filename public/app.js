@@ -137,7 +137,7 @@ function renderGame(v) {
 
   $('word').disabled = !myTurn;
   $('btn-submit').disabled = !myTurn;
-  if (myTurn && st.wasMyTurn !== r.turnId) { $('word').focus({ preventScroll: true }); }
+  if (myTurn && st.wasMyTurn !== r.turnId && !micOn) { $('word').focus({ preventScroll: true }); }
   st.wasMyTurn = myTurn ? r.turnId : false;
   if (!myTurn) $('hint').textContent = '';
 
@@ -364,6 +364,9 @@ let micOn = false;
 function micUi() {
   $('btn-mic').classList.toggle('on', micOn);
   $('btn-mic').setAttribute('aria-label', t(micOn ? 'micOff' : 'mic'));
+  // While listening, the on-screen keyboard stays down; turn the mic off to type.
+  $('word').inputMode = micOn ? 'none' : 'text';
+  if (micOn) $('word').blur();
 }
 function micStop() {
   micOn = false;
