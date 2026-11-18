@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "여기에_패키지ID (예: com.내이름.wordrelay)",
+    "sha256_cert_fingerprints": ["Play 콘솔 > 앱 무결성 > 앱 서명 키 인증서의 SHA-256 지문"]
+  }
+}]

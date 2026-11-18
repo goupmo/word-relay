@@ -38,7 +38,7 @@ http://localhost:3000 을 엽니다. 테스트는 `npm test`.
 1. https://adfit.kakao.com 에서 매체(사이트)를 등록하고 심사를 통과한 뒤 광고단위(320x100)를 만듭니다.
 2. 광고단위 ID(`DAN-...`)를 `public/config.js`의 `adfitUnitId`에 넣고 다시 배포합니다.
 3. 광고는 메인, 대기실, 라운드 결과 화면에만 나오고 게임 진행 중에는 나오지 않습니다.
-4. 심사에는 `public/about.html`, `public/privacy.html`이 쓰입니다. **`privacy.html`의 문의 이메일(`contact@example.com`)을 실제 이메일로 바꾸세요.**
+4. 심사에는 `public/about.html`, `public/privacy.html`이 쓰입니다.
 
 ## 출시 전 점검
 
