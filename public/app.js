@@ -624,8 +624,7 @@ function micListen() {
   };
   rec.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micStop(); setHint(t('micDenied')); toast(t('micDeniedToast'), true); }
-    else if (e.error === 'audio-capture') { micStop(); toast(t('micNoDevice'), true); }
-    else if (e.error !== 'no-speech' && e.error !== 'aborted') micFails++; // network...: onend retries
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') micFails++; // network, audio-capture...: onend retries (as before)
   };
   rec.onend = () => { if (recognition === rec) recognition = null; micRestart(); };
   try { rec.start(); } catch { recognition = null; micFails++; micRestart(); }
