@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.uniquetreasure.wordrelay",
+      "sha256_cert_fingerprints": [
+        "F5:BD:5B:78:C1:CF:5C:A2:F8:04:C1:C0:1B:C8:64:4F:19:5D:54:B0:44:29:60:6C:32:9A:5F:94:1B:C9:1D:33",
+        "A7:A8:FD:56:F5:77:60:DB:F6:F1:59:AB:08:9B:E3:4E:B1:CF:A0:80:62:46:98:C4:55:D7:42:D0:F8:25:F2:FF"
+      ]
+    }
+  }
+]
