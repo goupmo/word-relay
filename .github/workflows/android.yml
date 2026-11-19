@@ -16,6 +16,11 @@ jobs:
         run: |
           mkdir -p ~/.bubblewrap
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME_17_X64" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+      - name: Make the SDK match what Bubblewrap expects (tools folder, build-tools 36.1.0)
+        run: |
+          sudo chmod -R a+rwX "$ANDROID_HOME"
+          mkdir -p "$ANDROID_HOME/tools"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "build-tools;36.1.0"
       - name: Prepare project
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
