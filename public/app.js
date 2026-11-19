@@ -22,9 +22,35 @@ const st = {
   transport: null, view: null, offset: 0, you: null, code: null, names: {},
   seenSeq: 0, prevPhase: null, keysLang: null, lastSecond: null,
   lastSubmit: 0, composing: false, submitAfterComposition: false, wasMyTurn: false, localData: null,
+  roundWords: [], allWords: [], combo: 0, bestCombo: 0, voteWord: null, connKind: null,
 };
 
+// Installed PWA / Trusted Web Activity / WebView: no browser chrome, so the "install app" chip is pointless there.
+const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.matchMedia?.('(display-mode: fullscreen)').matches ||
+  window.navigator.standalone === true || document.referrer.startsWith('android-app://');
+if (standalone) document.body.classList.add('standalone');
+
 /* ---------- small helpers ---------- */
+function shake(el) {
+  if (!el) return;
+  el.classList.remove('shake');
+  void el.offsetWidth; // restart the animation
+  el.classList.add('shake');
+  el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+}
+function buzz(ms) { try { navigator.vibrate?.(ms); } catch { /* not supported */ } }
+// A short floating label ("+1", "🔥 3 combo!") that rises from an element.
+function floatText(text, anchor, cls = '') {
+  const r = anchor?.getBoundingClientRect?.();
+  const el = document.createElement('span');
+  el.className = `float ${cls}`;
+  el.textContent = text;
+  el.style.left = `${r ? r.left + r.width / 2 : window.innerWidth / 2}px`;
+  el.style.top = `${r ? r.top + r.height / 2 : window.innerHeight / 2}px`;
+  document.body.append(el);
+  setTimeout(() => el.remove(), 1100);
+}
+const randomNick = () => `${t('nicks')[Math.floor(Math.random() * t('nicks').length)]}${100 + Math.floor(Math.random() * 900)}`;
 let toastTimer;
 function toast(msg, bad = false) {
   const el = $('toast');
@@ -127,7 +153,7 @@ function renderGame(v) {
   const myTurn = v.phase === 'round' && r.turnId === you && !r.vote && !!me?.alive;
 
   $('players').innerHTML = v.players.map((p, i) =>
-    `<div class="player${p.id === r.turnId ? ' turn' : ''}${p.alive ? '' : ' out'}">${avatar(p.name, i)}<div class="pinfo"><div class="pname">${esc(p.name)}</div><div class="pscore">★ ${p.score}</div></div></div>`).join('');
+    `<div class="player${p.id === r.turnId ? ' turn' : ''}${p.alive ? '' : ' out'}" data-id="${esc(p.id)}">${avatar(p.name, i)}<div class="pinfo"><div class="pname">${esc(p.name)}</div><div class="pscore">★ ${p.score}</div></div></div>`).join('');
   const roundKey = `${v.match.played}:${v.category.id}`;
   if (roundKey !== st.roundKey) { st.roundKey = roundKey; $('word').value = ''; } // new round: drop any unsent text
   $('round-no').textContent = t('round', Math.min(v.match.rounds, v.match.played + (v.phase === 'round' ? 1 : 0)), v.match.rounds);
@@ -139,9 +165,7 @@ function renderGame(v) {
 
   const canObject = v.phase === 'round' && !!r.pending && !r.vote && (aliveCount >= 3 || r.pending.unverified) &&
     (st.mode === 'hotseat' ? st.transport.objectorId(v) !== null : r.pending.playerId !== you && !!me?.alive);
-  $('bubble').hidden = !r.pending;
-  $('bubble').classList.toggle('warn', !!r.pending?.unverified);
-  if (r.pending) $('bubble-text').innerHTML = `${r.pending.unverified ? '⚠ ' : ''}${esc(r.pending.word)} <span class="who">${esc(nameOf(r.pending.playerId))}</span>`;
+  renderFeed(v, you);
   $('btn-object').hidden = !canObject;
 
   for (const k of $('keys').children) k.classList.toggle('used', r.usedLetters.includes(k.dataset.l));
@@ -157,6 +181,18 @@ function renderGame(v) {
 
   renderVote(v, me);
   renderBetween(v);
+}
+
+// The last three words of the round: colour = who played it, a crossed-out word was voided by a challenge.
+function renderFeed(v, you) {
+  const idx = (id) => Math.max(0, v.players.findIndex((p) => p.id === id));
+  const last = st.roundWords.slice(-3);
+  $('feed').innerHTML = last.map((w, i) => {
+    const mine = w.playerId === you && st.mode !== 'hotseat';
+    const newest = i === last.length - 1;
+    return `<span class="fi${newest ? ' new' : ''}${mine ? ' mine' : ''}${w.voided ? ' void' : ''}" style="--c:${COLORS[idx(w.playerId) % COLORS.length]}">` +
+      `${w.unverified && !w.voided ? '⚠ ' : ''}${esc(w.word)}<small>${mine ? t('you') : esc(nameOf(w.playerId))}</small></span>`;
+  }).join('');
 }
 
 function renderVote(v, me) {
@@ -177,15 +213,30 @@ function renderBetween(v) {
   setTimeout(mountAds, 0);
   const sorted = [...v.players].sort((a, b) => b.score - a.score);
   let title;
+  let badge = '';
+  const you = youId(v);
   if (v.phase === 'between') {
     const names = (v.round.winners ?? []).map(nameOf);
     title = names.length === 1 ? t('roundWinner', names[0]) : names.length ? t('roundWinners', names.join(', ')) : '';
+    if (st.mode !== 'hotseat') badge = t((v.round.winners ?? []).includes(you) ? 'badgeRoundWin' : 'badgeRoundLose');
   } else {
     const best = sorted[0]?.score ?? 0;
-    const names = sorted.filter((p) => p.score === best).map((p) => p.name);
+    const leaders = sorted.filter((p) => p.score === best);
+    const names = leaders.map((p) => p.name);
     title = names.length === 1 ? t('champion', names[0]) : t('champions', names.join(', '));
+    if (st.mode !== 'hotseat') badge = t(leaders.some((p) => p.id === you) ? 'badgeWin' : 'badgeLose');
+    st.shareWho = names.join(', ');
   }
+  $('between-badge').textContent = badge;
   $('between-title').textContent = title;
+  // Result card: what was played (this round while between rounds, the whole game at the end) and the best combo.
+  const words = (v.phase === 'between' ? st.roundWords : st.allWords).filter((w) => !w.voided);
+  const idx = (id) => Math.max(0, v.players.findIndex((p) => p.id === id));
+  $('between-stats').innerHTML = `<span class="stat">${esc(t('statWords', words.length))}</span><span class="stat">${esc(t('statCombo', st.bestCombo))}</span>`;
+  $('between-words').innerHTML = words.length
+    ? words.map((w) => `<span class="wl" style="--c:${COLORS[idx(w.playerId) % COLORS.length]}">${esc(w.word)}</span>`).join('')
+    : `<span class="note">${esc(t('noWords'))}</span>`;
+  $('end-share').hidden = v.phase !== 'done';
   const roundWinners = v.round.winners ?? [];
   $('between-rank').innerHTML = sorted.map((p) =>
     `<li class="${v.phase === 'between' && roundWinners.includes(p.id) ? 'win' : ''}">${avatar(p.name, v.players.findIndex((x) => x.id === p.id))}<span>${esc(p.name)}</span><span class="pts">★ ${p.score}</span></li>`).join('');
@@ -214,37 +265,126 @@ function confetti() {
 }
 
 /* ---------- events, sounds ---------- */
+const fxQueue = []; // visual effects, run after the screen has been rendered
+function resetStats() { Object.assign(st, { roundWords: [], allWords: [], combo: 0, bestCombo: 0, voteWord: null }); }
 function handleEvent(v) {
   const e = v.event;
+  if (v.phase === 'lobby') resetStats();
+  if (v.phase === 'round' && st.prevPhase !== 'round') Object.assign(st, { roundWords: [], combo: 0, voteWord: null }); // a new round
   if (e && e.seq > st.seenSeq) {
     st.seenSeq = e.seq;
-    if (e.type === 'word') { play('ok'); if (e.unverified) toast(t('warnUnverified', e.word), true); }
-    else if (e.type === 'out') { play('fail'); toast(t(`out_${e.reason}`, nameOf(e.playerId)), true); }
-    else if (e.type === 'vote_start') play('object');
-    else if (e.type === 'vote_result') { play(e.result === 'upheld' ? 'ok' : 'fail'); toast(e.result === 'upheld' ? t('voteUpheld') : t('voteRejected')); }
+    if (e.type === 'word') {
+      const entry = { word: e.word, playerId: e.playerId, unverified: !!e.unverified, voided: false };
+      st.roundWords.push(entry);
+      st.allWords.push(entry);
+      st.combo++;
+      st.bestCombo = Math.max(st.bestCombo, st.combo);
+      play('ok');
+      fxQueue.push({ type: 'word', e, combo: st.combo });
+      if (e.unverified) toast(t('warnUnverified', e.word), true);
+    } else if (e.type === 'out') {
+      st.combo = 0;
+      play('fail'); buzz([60, 40, 60]);
+      toast(t(`out_${e.reason}`, nameOf(e.playerId)), true);
+    } else if (e.type === 'vote_start') {
+      st.voteWord = st.roundWords.at(-1)?.word ?? null;
+      play('object');
+    } else if (e.type === 'vote_result') {
+      if (e.result === 'upheld') {
+        for (const w of st.roundWords) if (w.word === st.voteWord) w.voided = true;
+        st.combo = 0;
+      }
+      st.voteWord = null;
+      play(e.result === 'upheld' ? 'ok' : 'fail');
+      toast(e.result === 'upheld' ? t('voteUpheld') : t('voteRejected'));
+    }
   }
-  if ((v.phase === 'between' || v.phase === 'done') && st.prevPhase === 'round' && (st.mode === 'hotseat' ? v.round.winners?.length : v.round.winners?.includes(st.you))) { play('win'); confetti(); }
+  if ((v.phase === 'between' || v.phase === 'done') && st.prevPhase === 'round') {
+    for (const id of v.round.winners ?? []) fxQueue.push({ type: 'star', id });
+    if (st.mode === 'hotseat' ? v.round.winners?.length : v.round.winners?.includes(st.you)) { play('win'); confetti(); }
+  }
   st.prevPhase = v.phase;
+}
+
+// Correct word: the letter tile pops, "+1" floats up from the player who played it, and long chains get a combo shout.
+function runFx(v) {
+  const lang = v.settings.lang;
+  for (const fx of fxQueue.splice(0)) {
+    if (fx.type === 'word') {
+      const letter = initialOf(fx.e.word, lang);
+      const key = [...$('keys').children].find((k) => k.dataset.l === letter);
+      if (key) {
+        key.classList.remove('pop');
+        void key.offsetWidth;
+        key.classList.add('pop');
+        key.addEventListener('animationend', () => key.classList.remove('pop'), { once: true });
+      }
+      play('pop');
+      floatText(t('plusOne'), document.querySelector(`.player[data-id="${CSS.escape(fx.e.playerId)}"]`) ?? key);
+      if (fx.combo >= 3) { floatText(t('combo', fx.combo), $('ring'), 'big'); play('combo'); }
+    } else if (fx.type === 'star') {
+      floatText(t('roundStar'), document.querySelector(`.player[data-id="${CSS.escape(fx.id)}"]`), 'big');
+    }
+  }
 }
 
 /* ---------- connection ---------- */
 function onMessage(msg) {
   if (msg.t === 'joined') {
     st.you = msg.you; st.code = msg.code; st.seenSeq = 0; st.prevPhase = null; st.names = {};
+    resetStats();
     if (location.search) history.replaceState(null, '', '/');
   } else if (msg.t === 'error') {
     const text = t(`err_${msg.reason}`);
-    if (currentScreen() === 'setup') $('setup-msg').textContent = text; else toast(text, true);
+    if (currentScreen() === 'setup') { $('setup-msg').textContent = text; shake($('setup-msg')); } else toast(text, true);
   } else if (msg.t === 'room') {
     for (const p of msg.players) st.names[p.id] = p.name;
     st.view = msg;
     st.offset = msg.serverNow - Date.now();
     handleEvent(msg);
     render(msg);
+    runFx(msg);
   }
 }
 
+/* ---------- connection overlay: skeleton while reaching the server, notice when it drops ---------- */
+let connTimer = null;
+function showConn(kind, n = 0) {
+  clearTimeout(connTimer);
+  const apply = () => {
+    st.connKind = kind;
+    const wait = kind === 'connecting' || kind === 'retry';
+    $('conn-skel').hidden = !wait;
+    $('conn-title').textContent = t({ connecting: 'connConnecting', retry: 'connRetry', lost: 'connLost', offline: 'connOffline' }[kind], n);
+    $('conn-sub').textContent = t({ connecting: 'connWake', retry: 'connRetrySub', lost: 'connLostSub', offline: 'connOfflineSub' }[kind]);
+    $('conn-btn').textContent = t(wait ? 'cancel' : 'home');
+    $('conn').hidden = false;
+  };
+  if (kind === 'connecting') connTimer = setTimeout(apply, 500); // quick connections never flash the overlay
+  else apply();
+}
+function hideConn() { clearTimeout(connTimer); st.connKind = null; $('conn').hidden = true; }
+function onConnStatus(s, n) {
+  if (s === 'open') hideConn();
+  else if (s === 'connecting' || s === 'retry') showConn(s, n);
+  else if (s === 'failed') {
+    hideConn();
+    endSession2();
+    st.mode = null;
+    if (currentScreen() === 'setup') { $('setup-msg').textContent = t('connFail'); shake($('setup-msg')); } else toast(t('connFail'), true);
+  }
+}
+$('conn-btn').addEventListener('click', () => {
+  const kind = st.connKind;
+  hideConn();
+  if (kind === 'lost' || kind === 'offline') endSession();
+  else { endSession2(); st.mode = null; } // cancelled while connecting: back to the form
+});
+window.addEventListener('offline', () => { if (st.mode === 'online' && st.transport) showConn('offline'); });
+window.addEventListener('online', () => { if (st.connKind === 'offline') hideConn(); });
+
 function endSession() {
+  hideConn();
   micStop();
   st.transport?.close();
   Object.assign(st, { transport: null, view: null, mode: null, you: null, code: null, wasMyTurn: false });
@@ -286,7 +426,7 @@ function syncHumans() {
 function openSetup(mode, code = '') {
   st.setupMode = mode;
   setupLabels();
-  $('f-name').value = store.get('name') ?? '';
+  $('f-name').value = store.get('name') || randomNick(); // never start with an empty nickname
   $('f-code').value = code;
   $('f-code').readOnly = !!code;
   $('row-code').hidden = mode !== 'join';
@@ -304,7 +444,15 @@ $('setup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   unlock();
   const name = $('f-name').value.trim();
-  if (!name) { $('setup-msg').textContent = t('err_bad_name'); return; }
+  if (!name) {
+    $('setup-msg').textContent = t('nickEmpty');
+    shake($('f-name'));
+    shake($('setup-msg'));
+    play('bad');
+    buzz(40);
+    $('f-name').focus();
+    return;
+  }
   store.set('name', name);
   const lang = getLang();
   const opts = { name, lang, maxPlayers: +$('f-max').value, timeLimitSec: +$('f-time').value, rounds: +$('f-rounds').value };
@@ -334,7 +482,7 @@ $('setup-form').addEventListener('submit', async (e) => {
     return;
   }
   st.mode = 'online';
-  st.transport = connect(onMessage, () => { toast(t('disconnected'), true); endSession(); });
+  st.transport = connect(onMessage, () => showConn('lost'), onConnStatus);
   if (st.setupMode === 'create') st.transport.send({ t: 'create', ...opts });
   else st.transport.send({ t: 'join', code: $('f-code').value.trim().toUpperCase(), name });
 });
@@ -346,6 +494,14 @@ function myTurnNow() {
   return !!v && v.phase === 'round' && v.round.turnId === youId(v) && !v.round.vote;
 }
 function setHint(text) { $('hint').textContent = text; }
+// A refused word is never sent (the engine would knock the player out): say why, shake the bar, buzz.
+function reject(text) {
+  setHint(text);
+  toast(text, true);
+  shake($('entry'));
+  play('bad');
+  buzz(60);
+}
 
 function submitWord() {
   if (!myTurnNow()) return;
@@ -354,11 +510,11 @@ function submitWord() {
   const v = st.view;
   const lang = v.settings.lang;
   const word = normalizeWord($('word').value, lang);
-  if (!word) return setHint(lang === 'ko' ? t('hintInvalid') : t('hintInvalidEn'));
+  if (!word) return reject(lang === 'ko' ? t('hintInvalid') : t('hintInvalidEn'));
   const letter = initialOf(word, lang);
-  if (!letter) return setHint(t('hintNoLetter'));
-  if (v.round.usedLetters.includes(letter)) return setHint(t('hintUsed'));
-  if (v.round.usedWords.includes(word)) return setHint(t('hintDup'));
+  if (!letter) return reject(t('hintNoLetter'));
+  if (v.round.usedLetters.includes(letter)) return reject(t('hintUsed'));
+  if (v.round.usedWords.includes(word)) return reject(t('hintDup'));
   st.lastSubmit = now;
   setHint('');
   play('tap');
@@ -447,7 +603,8 @@ function micRestart() {
 }
 function micListen() {
   if (!micOn || recognition || document.hidden) return;
-  const rec = new SR();
+  let rec;
+  try { rec = new SR(); } catch { micStop(); toast(t('micUnsupported'), true); return; }
   recognition = rec;
   rec.lang = getLang() === 'ko' ? 'ko-KR' : 'en-US';
   rec.continuous = true;
@@ -466,8 +623,9 @@ function micListen() {
     }
   };
   rec.onerror = (e) => {
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micStop(); setHint(t('micDenied')); }
-    else if (e.error !== 'no-speech' && e.error !== 'aborted') micFails++; // network, audio-capture...: onend retries
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micStop(); setHint(t('micDenied')); toast(t('micDeniedToast'), true); }
+    else if (e.error === 'audio-capture') { micStop(); toast(t('micNoDevice'), true); }
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') micFails++; // network...: onend retries
   };
   rec.onend = () => { if (recognition === rec) recognition = null; micRestart(); };
   try { rec.start(); } catch { recognition = null; micFails++; micRestart(); }
@@ -475,6 +633,8 @@ function micListen() {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && micOn && !recognition) { micFails = 0; micRestart(); } });
 $('btn-mic').addEventListener('click', () => {
   if (micOn) return micStop();
+  // A WebView (or a browser) without speech recognition: tell the player instead of doing nothing.
+  if (!SR) { toast(t('micUnsupported'), true); shake($('btn-mic')); return; }
   unlock();
   micOn = true;
   micFails = 0;
@@ -503,6 +663,15 @@ $('vote-yes').addEventListener('click', () => st.transport.send({ t: 'vote', yes
 $('vote-no').addEventListener('click', () => st.transport.send({ t: 'vote', yes: false }));
 $('end-again').addEventListener('click', () => st.transport.send({ t: 'restart' }));
 $('end-home').addEventListener('click', leaveRoom);
+$('end-share').addEventListener('click', async () => {
+  const text = t('shareText', st.shareWho ?? '', st.allWords.filter((w) => !w.voided).length, st.bestCombo);
+  try {
+    if (navigator.share) await navigator.share({ title: t('title'), text, url: location.origin });
+    else { await navigator.clipboard.writeText(`${text}\n${location.origin}`); toast(t('copied')); }
+  } catch (e) {
+    if (e?.name !== 'AbortError') toast(text); // sharing unavailable: show the text so it can be copied by hand
+  }
+});
 
 /* ---------- lobby actions ---------- */
 const inviteUrl = () => `${location.origin}/?room=${st.code}`;
@@ -536,6 +705,7 @@ $('btn-kakao').addEventListener('click', async () => {
 /* ---------- frame loop: timer ring ---------- */
 function frame() {
   const v = st.view;
+  if (!(v && v.phase === 'round' && !v.round.vote && currentScreen() === 'game')) document.body.classList.remove('danger');
   if (v && currentScreen() === 'game') {
     const ring = $('ring');
     if (v.phase === 'round') {
@@ -551,9 +721,11 @@ function frame() {
         const sec = Math.ceil(rem / 1000);
         $('ring-fg').style.strokeDashoffset = String(RING * (1 - Math.min(1, rem / limit)));
         $('ring-num').textContent = String(sec);
+        const urgent = rem <= 3000 && rem > 0;
         ring.classList.toggle('low', rem <= 3000);
+        document.body.classList.toggle('danger', urgent); // red pulsing screen edge for the last 3 seconds
         if (sec !== st.lastSecond) {
-          if (rem <= 3000 && sec > 0 && myTurnNow()) play('tick');
+          if (urgent && myTurnNow()) { play('urgent'); buzz(sec === 1 ? 140 : 60); }
           st.lastSecond = sec;
         }
       }
@@ -570,7 +742,6 @@ function frame() {
 $('go-single').addEventListener('click', () => { unlock(); openSetup('single'); });
 $('go-hotseat').addEventListener('click', () => { unlock(); openSetup('hotseat'); });
 $('f-humans').addEventListener('change', syncHumans);
-$('btn-mic').hidden = !SR;
 $('go-create').addEventListener('click', () => { unlock(); openSetup('create'); });
 $('go-join').addEventListener('click', () => { unlock(); openSetup('join'); });
 $('setup-back').addEventListener('click', () => show('home'));
@@ -593,6 +764,7 @@ function fitViewport() {
   root.setProperty('--kb', `${Math.round(vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0)}px`);
   document.body.classList.toggle('compact', h < 820);
   document.body.classList.toggle('tiny', h < 440); // very short: the logo row goes too
+  document.body.classList.toggle('kb-open', window.innerHeight - h > 120); // on-screen keyboard: slim the chrome down
 }
 vv?.addEventListener('resize', fitViewport);
 vv?.addEventListener('scroll', fitViewport);
@@ -601,7 +773,7 @@ fitViewport();
 
 /* ---------- install as an app (Chrome) ---------- */
 let installEvent = null;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; $('btn-install').hidden = false; });
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; $('btn-install').hidden = standalone; });
 window.addEventListener('appinstalled', () => { installEvent = null; $('btn-install').hidden = true; });
 $('btn-install').addEventListener('click', async () => {
   if (!installEvent) return;

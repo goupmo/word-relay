@@ -47,7 +47,7 @@
         <h2 id="setup-title"></h2>
         <label class="field" id="row-humans"><span data-i18n="humans"></span>
           <select id="f-humans"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
-        <label class="field" id="row-name"><span id="name-label" data-i18n="name"></span><input id="f-name" maxlength="12" required data-i18n-ph="namePh"></label>
+        <label class="field" id="row-name"><span id="name-label" data-i18n="name"></span><input id="f-name" maxlength="12" data-i18n-ph="namePh"></label>
         <div id="row-names">
           <label class="field"><span data-i18n="name2"></span><input id="f-n2" maxlength="12" data-i18n-ph="namePh"></label>
           <label class="field" id="row-n3"><span data-i18n="name3"></span><input id="f-n3" maxlength="12" data-i18n-ph="namePh"></label>
@@ -97,8 +97,10 @@
         <h2 class="cat-name" id="cat-name"></h2>
         <p class="whose" id="whose"></p>
       </div>
+      <!-- The last three words, newest on the right: what the others just played and what you typed. -->
       <div class="bubble-row">
-        <div class="bubble" id="bubble" hidden><span id="bubble-text"></span><button id="btn-object" class="btn tiny danger" type="button" data-i18n="objectBtn" hidden></button></div>
+        <div class="feed" id="feed" aria-live="polite"></div>
+        <button id="btn-object" class="btn tiny danger" type="button" data-i18n="objectBtn" hidden></button>
       </div>
       <!-- The letters sit on a ring around the timer, and the ring fills whatever height is left. -->
       <div class="dial-wrap">
@@ -135,13 +137,17 @@
 
       <div class="overlay" id="between" hidden>
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="between-title">
+          <div class="badge" id="between-badge"></div>
           <h3 id="between-title"></h3>
           <ol class="rank" id="between-rank"></ol>
+          <div class="stats" id="between-stats"></div>
+          <div class="wordlist" id="between-words"></div>
           <p class="note" id="between-next"></p>
           <div class="row" id="between-actions" hidden>
             <button id="end-home" class="btn" type="button" data-i18n="home"></button>
             <button id="end-again" class="btn primary" type="button" data-i18n="again"></button>
           </div>
+          <button id="end-share" class="btn small share" type="button" data-i18n="shareResult" hidden></button>
           <p class="note" id="end-wait" hidden></p>
           <div class="ad-slot" data-ad></div>
         </div>
@@ -149,6 +155,15 @@
     </section>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
+</div>
+<!-- Shown while the server is being reached or after the connection dropped. -->
+<div class="overlay conn" id="conn" hidden>
+  <div class="sheet" role="alertdialog" aria-live="polite" aria-labelledby="conn-title">
+    <div class="skel" id="conn-skel" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h3 id="conn-title"></h3>
+    <p class="note" id="conn-sub"></p>
+    <div class="row"><button id="conn-btn" class="btn" type="button"></button></div>
+  </div>
 </div>
 <script type="module" src="/app.js"></script>
 </body>

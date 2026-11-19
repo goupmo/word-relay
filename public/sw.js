@@ -1,6 +1,6 @@
 // Makes the game installable and lets solo / pass-and-play start with no connection.
 // Network first, so a new deploy shows up at once; the cache is only the fallback when offline.
-const CACHE = 'wr-v1';
+const CACHE = 'wr-v2';
 const SHELL = [
   '/', '/style.css', '/app.js', '/i18n.js', '/sfx.js', '/net.js', '/local.js', '/bot.js', '/ads.js', '/config.js',
   '/shared/chars.js', '/shared/game.js', '/shared/rooms.js', '/data/categories.json', '/icon.svg', '/manifest.webmanifest',

@@ -35,6 +35,10 @@ const SOUNDS = {
   fail: [{ f: 260, to: 90, dur: 0.38, type: 'sawtooth', vol: 0.14 }],
   object: [0, 0.16, 0.32, 0.48].map((at, i) => ({ f: i % 2 ? 660 : 880, at, dur: 0.14, type: 'square', vol: 0.09 })),
   win: [523, 659, 784, 1047].map((f, i) => ({ f, at: i * 0.11, dur: 0.22, type: 'triangle' })),
+  urgent: [{ f: 988, dur: 0.07, type: 'square', vol: 0.1 }, { f: 740, at: 0.09, dur: 0.09, type: 'square', vol: 0.1 }],
+  bad: [{ f: 220, to: 130, dur: 0.2, type: 'square', vol: 0.1 }],
+  pop: [{ f: 760, to: 1240, dur: 0.1, type: 'triangle', vol: 0.12 }],
+  combo: [784, 988, 1319].map((f, i) => ({ f, at: i * 0.07, dur: 0.12, type: 'triangle', vol: 0.12 })),
 };
 
 export function play(name) {

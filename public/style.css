@@ -16,7 +16,9 @@ body {
     radial-gradient(#ffffffb3 2px, transparent 2.5px) 0 0 / 28px 28px,
     linear-gradient(180deg, #c9ecff 0%, #e6f3ff 45%, #fff0bd 100%) fixed;
 }
-#app { max-width: 600px; margin: 0 auto; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); }
+/* Safe areas: notches, status bar and gesture bar when the game runs full screen as an app. */
+#app { max-width: 600px; margin: 0 auto; padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+body.standalone #btn-install { display: none !important; }
 h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
@@ -108,10 +110,16 @@ button, input, select { font: inherit; color: inherit; }
 .stage { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 14px; padding: 8px 0 0; }
 .round-no { flex-basis: 100%; margin: 0 0 2px; text-align: center; color: var(--muted); font-size: 14px; }
 .cat-name { display: inline-block; font-size: clamp(28px, 9vw, 44px); line-height: 1.15; margin: 0; padding: 2px 24px 5px; background: var(--paper); border: var(--bd); border-radius: 22px; box-shadow: var(--pop); transform: rotate(-1.5deg); color: var(--ink); }
-.bubble-row { display: flex; justify-content: center; align-items: center; min-height: 54px; padding-top: 6px; }
-.bubble { display: inline-flex; align-items: center; gap: 10px; background: var(--paper); border: var(--bd); border-radius: 999px; padding: 4px 8px 4px 18px; font: 21px var(--display); box-shadow: 0 4px 0 var(--ink); }
-.bubble.warn { background: #fff3c4; }
-.bubble .who { font: 14px var(--body); color: var(--muted); }
+.bubble-row { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 54px; padding-top: 6px; }
+/* Word feed: the last three words, newest on the right. Colour = who played it. */
+.feed { display: flex; justify-content: center; align-items: center; gap: 8px; min-width: 0; overflow: hidden; padding: 0 2px 4px; }
+.fi { flex: none; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; background: var(--c, var(--paper)); border: 3px solid var(--ink); border-radius: 16px; padding: 1px 12px 3px; font: 20px var(--display); box-shadow: 0 3px 0 var(--ink); opacity: .78; transform: scale(.92); }
+.fi small { font: 11px var(--body); color: var(--ink); opacity: .75; max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fi.new { opacity: 1; transform: none; animation: slidein .32s cubic-bezier(.3, 1.6, .5, 1); }
+.fi.mine { border-color: var(--grape-d); box-shadow: 0 3px 0 var(--grape-d); }
+.fi.void { background: #dfe3f2; text-decoration: line-through; opacity: .6; }
+@keyframes slidein { from { transform: translateX(26px) scale(.8); opacity: 0; } }
+@media (max-width: 400px) { .fi:nth-last-child(n+3) { display: none; } }
 
 /* The dial fills all the height that is left. Letters sit on an ellipse around the timer: --k is the letter size,
    --a each letter's angle. Size units (cqw/cqh) are relative to .dial, so the ring follows the space it is given. */
@@ -175,6 +183,19 @@ body.in-game .top { flex: none; }
 .overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: #232a5c8c; backdrop-filter: blur(3px); }
 .sheet { width: min(100%, 420px); max-height: 92dvh; overflow: auto; background: var(--paper); border: var(--bd); border-radius: 28px; padding: 22px 18px; text-align: center; box-shadow: 0 8px 0 var(--ink); animation: pop .28s cubic-bezier(.3, 1.6, .5, 1); }
 .sheet h3 { font-size: 28px; margin-bottom: 8px; }
+.badge { font: 40px var(--display); line-height: 1.1; }
+.badge:empty { display: none; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 4px 0 8px; }
+.stat { background: var(--soft); border: var(--bd); border-radius: 14px; padding: 2px 12px 4px; font: 16px var(--display); }
+.wordlist { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-height: 100px; overflow: auto; margin: 6px 0; padding: 2px; }
+.wl { background: var(--c, var(--soft)); border: 2px solid var(--ink); border-radius: 12px; padding: 0 10px 2px; font: 16px var(--display); }
+.share { margin-top: 12px; background: var(--mint); }
+.conn { z-index: 50; }
+.skel { display: grid; gap: 10px; margin-bottom: 14px; }
+.skel i { display: block; height: 20px; border-radius: 10px; background: linear-gradient(90deg, var(--soft) 25%, #fff 50%, var(--soft) 75%) 0 0 / 200% 100%; border: 3px solid var(--ink); animation: shimmer 1.2s linear infinite; }
+.skel i:nth-child(2) { width: 80%; }
+.skel i:nth-child(3) { width: 55%; }
+@keyframes shimmer { to { background-position: -200% 0; } }
 @keyframes pop { from { transform: scale(.8) rotate(-3deg); opacity: 0; } }
 .vote-bar { height: 14px; border-radius: 999px; background: var(--soft); border: 3px solid var(--ink); margin: 14px 0 4px; overflow: hidden; }
 .vote-bar span { display: block; height: 100%; width: 100%; background: var(--grape); transform-origin: left; }
@@ -188,6 +209,18 @@ body.in-game .top { flex: none; }
 #toast { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top) + var(--vtop, 0px)); transform: translate(-50%, -20px); opacity: 0; pointer-events: none; z-index: 30; max-width: min(92vw, 420px); background: var(--paper); border: var(--bd); box-shadow: var(--pop); border-radius: 16px; padding: 10px 16px; font-size: 16px; text-align: center; transition: opacity .2s, transform .2s; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast.bad { background: #fff3c4; }
+
+/* Feedback: wrong input shakes, a right word pops its tile and floats "+1", the last 3 seconds pulse red. */
+.shake { animation: shake .42s cubic-bezier(.36, .07, .19, .97); }
+@keyframes shake { 15%, 85% { transform: translateX(-4px); } 30%, 70% { transform: translateX(7px); } 45%, 55% { transform: translateX(-9px); } }
+.key.pop { animation: keypop .5s cubic-bezier(.3, 1.7, .5, 1); z-index: 3; }
+@keyframes keypop { 0% { transform: scale(1); } 40% { transform: scale(1.6) rotate(-8deg); background: var(--sun); } 100% { transform: scale(1); } }
+.float { position: fixed; z-index: 45; pointer-events: none; font: 26px var(--display); color: var(--grape-d); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; transform: translate(-50%, -50%); animation: floatup 1s ease-out forwards; white-space: nowrap; }
+.float.big { font-size: 34px; color: var(--coral-d); }
+@keyframes floatup { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -70px; } }
+body.danger::after { content: ''; position: fixed; inset: 0; z-index: 15; pointer-events: none; box-shadow: inset 0 0 0 6px var(--coral), inset 0 0 46px 8px #ff5d7399; animation: dpulse .5s ease-in-out infinite alternate; }
+@keyframes dpulse { from { opacity: .35; } to { opacity: 1; } }
+body.danger .ring-num { color: var(--coral-d); }
 
 .confetti { position: fixed; left: 50%; top: 32%; z-index: 40; pointer-events: none; }
 .confetti i { position: absolute; width: 11px; height: 17px; border-radius: 3px; border: 2px solid var(--ink); background: var(--c); animation: fly 1.5s cubic-bezier(.2, .7, .4, 1) var(--d) forwards; }
@@ -209,8 +242,10 @@ body.in-game .top { flex: none; }
 .compact .stage { padding-top: 4px; }
 .compact .round-no { display: none; }
 .compact .cat-name { font-size: 28px; padding: 0 18px 3px; border-radius: 16px; box-shadow: 0 3px 0 var(--ink); }
-.compact .bubble-row { min-height: 46px; padding-top: 4px; }
-.compact .bubble { font-size: 18px; padding: 2px 6px 2px 14px; }
+.compact .bubble-row { min-height: 44px; padding-top: 2px; }
+.compact .fi { font-size: 17px; padding: 0 10px 2px; }
+.compact .fi small { display: none; }
+.kb-open .fi:nth-last-child(n+3) { display: none; }
 .compact .hint { margin: 0 4px 4px; min-height: 1.2em; }
 .compact .entry { padding: 6px; border-radius: 18px; }
 .compact .entry input { min-height: 46px; font-size: 20px; }
@@ -221,8 +256,9 @@ body.in-game .top { flex: none; }
 .tiny .top { display: none; }
 .tiny .players { margin-top: 6px; }
 .tiny .cat-name { font-size: 22px; padding: 0 14px 2px; }
-.tiny .bubble-row { min-height: 38px; padding-top: 2px; }
-.tiny .bubble { font-size: 15px; }
+.tiny .bubble-row { min-height: 34px; padding-top: 0; }
+.tiny .fi { font-size: 15px; }
+.tiny .fi:nth-last-child(n+2) { display: none; }
 .tiny .hint { min-height: 0; margin: 0 4px 2px; }
 .tiny .cands { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; max-height: 48px; }
 .tiny.mic-on .cands { min-height: 44px; }
