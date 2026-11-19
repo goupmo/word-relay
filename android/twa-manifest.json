@@ -30,7 +30,7 @@
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "fullScopeUrl": "https://word-relay.onrender.com/",
-  "minSdkVersion": 21,
+  "minSdkVersion": 24,
   "additionalTrustedOrigins": [],
   "retainedBundles": []
 }
