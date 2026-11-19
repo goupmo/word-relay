@@ -23,4 +23,4 @@
 
 **카테고리**: 게임 > 단어 (Word)
 **연락처 이메일**: yourunique@naver.com
-**개인정보처리방침 URL**: https://<내도메인>/privacy.html
+**개인정보처리방침 URL**: https://word-relay.onrender.com/privacy.html
