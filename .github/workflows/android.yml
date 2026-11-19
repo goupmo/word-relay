@@ -1,0 +1,40 @@
+name: Android build (TWA)
+
+# Manual run: builds a signed Android App Bundle (.aab) for Google Play from the live site.
+# The upload keystore and its password live only in repository secrets; they are never printed or uploaded.
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Point Bubblewrap at the preinstalled JDK and Android SDK
+        run: |
+          mkdir -p ~/.bubblewrap
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME_17_X64" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+      - name: Prepare project
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          mkdir build
+          sed "s/__VERSION_CODE__/${{ github.run_number }}/" android/twa-manifest.json > build/twa-manifest.json
+          printf '%s' "$KEYSTORE_B64" | base64 -d > build/upload.p12
+      - name: Generate and build
+        working-directory: build
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          npx --yes @bubblewrap/cli@1.27.0 update --skipVersionUpgrade --manifest=./twa-manifest.json
+          npx --yes @bubblewrap/cli@1.27.0 build --skipPwaValidation --manifest=./twa-manifest.json
+      - name: Upload the bundle (signed with the upload key only)
+        uses: actions/upload-artifact@v4
+        with:
+          name: word-relay-aab
+          path: |
+            build/app-release-bundle.aab
+            build/app-release-signed.apk
