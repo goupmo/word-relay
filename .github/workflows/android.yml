@@ -35,6 +35,29 @@ jobs:
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           npx --yes @bubblewrap/cli@1.27.0 update --skipVersionUpgrade --manifest=./twa-manifest.json
+          # androidbrowserhelper 2.7.x 는 시작할 때 ManageDataLauncherActivity 를 켜고 끈다(setComponentEnabledSetting).
+          # Bubblewrap 이 만든 매니페스트에는 이 선언이 없어서 앱이 시작하자마자 죽는다
+          # ("Component class ... ManageDataLauncherActivity does not exist"). 선언을 넣고, 코드 축소(R8)도 끈다.
+          python3 - <<'PY'
+          import re
+          path = "app/src/main/AndroidManifest.xml"
+          text = open(path, encoding="utf-8").read()
+          if "ManageDataLauncherActivity" not in text:
+              marker = '<activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity"'
+              assert marker in text, "FocusActivity marker not found"
+              block = ('<activity android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity" android:exported="false">\n'
+                       '            <meta-data android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL" android:value="@string/launchUrl" />\n'
+                       '        </activity>\n\n        ')
+              text = text.replace(marker, block + marker, 1)
+              open(path, "w", encoding="utf-8").write(text)
+          gradle = "app/build.gradle"
+          g = open(gradle, encoding="utf-8").read()
+          g2 = g.replace("minifyEnabled true", "minifyEnabled false")
+          assert "minifyEnabled false" in g2, "minifyEnabled not found"
+          open(gradle, "w", encoding="utf-8").write(g2)
+          PY
+          grep -q ManageDataLauncherActivity app/src/main/AndroidManifest.xml
+          grep -q "minifyEnabled false" app/build.gradle
           npx --yes @bubblewrap/cli@1.27.0 build --skipPwaValidation --manifest=./twa-manifest.json
       - name: Upload the bundle (signed with the upload key only)
         uses: actions/upload-artifact@v4
